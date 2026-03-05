@@ -158,11 +158,12 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-[#1e1e35] bg-[#0a0a0f] px-4 py-3 space-y-1">
+          <div className="md:hidden border-t border-[#1e1e35] bg-[#0a0a0f] px-4 py-3 space-y-1" data-testid="mobile-menu">
             <Link
               to={createPageUrl("Home")}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white hover:bg-white/10 transition-colors"
+              data-testid="mobile-home-link"
             >
               <Home className="w-4 h-4" /> Início
             </Link>
@@ -170,7 +171,8 @@ export default function Layout({ children, currentPageName }) {
               <Link
                 to={createPageUrl("History")}
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white hover:bg-white/10 transition-colors"
+                data-testid="mobile-history-link"
               >
                 <History className="w-4 h-4" /> Histórico
               </Link>
@@ -178,7 +180,8 @@ export default function Layout({ children, currentPageName }) {
             <Link
               to={createPageUrl("Donate")}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white hover:bg-white/10 transition-colors"
+              data-testid="mobile-donate-link"
             >
               <Heart className="w-4 h-4" /> Apoiar
             </Link>
@@ -187,13 +190,15 @@ export default function Layout({ children, currentPageName }) {
                 <Link
                   to={createPageUrl("Profile")}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-white hover:bg-white/10 transition-colors"
+                  data-testid="mobile-profile-link"
                 >
                   <User className="w-4 h-4" /> Perfil
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors w-full"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors w-full text-left"
+                  data-testid="mobile-logout-btn"
                 >
                   <LogOut className="w-4 h-4" /> Sair
                 </button>
@@ -202,6 +207,7 @@ export default function Layout({ children, currentPageName }) {
               <button
                 onClick={() => setAuthModalOpen(true)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-500 text-white transition-colors w-full font-medium"
+                data-testid="mobile-login-btn"
               >
                 <User className="w-4 h-4" /> Entrar / Cadastrar
               </button>
