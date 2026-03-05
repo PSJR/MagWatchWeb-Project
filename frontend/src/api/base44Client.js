@@ -11,30 +11,48 @@ class Base44Client {
         'Content-Type': 'application/json',
       },
     });
+
+    this.axios.interceptors.request.use((config) => {
+      const token = localStorage.getItem('magwatch_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
   }
 
   auth = {
     me: async () => {
-      const user = localStorage.getItem('magwatch_user');
-      if (!user) throw new Error('Not authenticated');
-      return JSON.parse(user);
+      try {
+        const response = await this.axios.get('/auth/me');
+        return response.data;
+      } catch (err) {
+        throw new Error('Not authenticated');
+      }
+    },
+    register: async (email, fullName, password) => {
+      const response = await this.axios.post('/auth/register', {
+        email,
+        full_name: fullName,
+        password,
+      });
+      localStorage.setItem('magwatch_token', response.data.access_token);
+      localStorage.setItem('magwatch_user', JSON.stringify(response.data.user));
+      return response.data.user;
     },
     login: async (email, password) => {
-      const user = { email, full_name: email.split('@')[0], id: Date.now() };
-      localStorage.setItem('magwatch_user', JSON.stringify(user));
-      return user;
+      const response = await this.axios.post('/auth/login', {
+        email,
+        password,
+      });
+      localStorage.setItem('magwatch_token', response.data.access_token);
+      localStorage.setItem('magwatch_user', JSON.stringify(response.data.user));
+      return response.data.user;
     },
     logout: () => {
+      localStorage.removeItem('magwatch_token');
       localStorage.removeItem('magwatch_user');
       window.location.href = '/';
-    },
-    redirectToLogin: () => {
-      const email = prompt('Digite seu email para entrar:');
-      if (email) {
-        const user = { email, full_name: email.split('@')[0], id: Date.now() };
-        localStorage.setItem('magwatch_user', JSON.stringify(user));
-        window.location.reload();
-      }
     },
   };
 

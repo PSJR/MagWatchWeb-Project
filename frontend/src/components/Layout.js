@@ -4,17 +4,33 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Film, User, Heart, LogOut, History, Home, Menu, X } from "lucide-react";
 import TorrentNotificationPopup from "./TorrentNotificationPopup";
+import AuthModal from "./AuthModal";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => setUser(null));
+    loadUser();
   }, []);
+
+  const loadUser = async () => {
+    try {
+      const userData = await base44.auth.me();
+      setUser(userData);
+    } catch {
+      setUser(null);
+    }
+  };
 
   const handleLogout = () => {
     base44.auth.logout();
+  };
+
+  const handleAuthSuccess = () => {
+    loadUser();
   };
 
   return (
@@ -45,7 +61,7 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <Link to={createPageUrl("Home")} className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/50 transition-all duration-300 transform group-hover:scale-110">
                 <Film className="w-4 h-4 text-white" />
               </div>
               <span className="font-bold text-lg tracking-tight">
@@ -58,9 +74,9 @@ export default function Layout({ children, currentPageName }) {
             <div className="hidden md:flex items-center gap-1">
               <Link
                 to={createPageUrl("Home")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
                   currentPageName === "Home"
-                    ? "bg-blue-600/20 text-blue-400"
+                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
                 data-testid="nav-home-link"
@@ -72,9 +88,9 @@ export default function Layout({ children, currentPageName }) {
               {user && (
                 <Link
                   to={createPageUrl("History")}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
                     currentPageName === "History"
-                      ? "bg-blue-600/20 text-blue-400"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30"
                       : "text-slate-400 hover:text-white hover:bg-white/5"
                   }`}
                   data-testid="nav-history-link"
@@ -86,9 +102,9 @@ export default function Layout({ children, currentPageName }) {
 
               <Link
                 to={createPageUrl("Donate")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
                   currentPageName === "Donate"
-                    ? "bg-blue-600/20 text-blue-400"
+                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
                 data-testid="nav-donate-link"
@@ -121,8 +137,8 @@ export default function Layout({ children, currentPageName }) {
                 </div>
               ) : (
                 <button
-                  onClick={() => base44.auth.redirectToLogin()}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-500 text-white transition-colors font-medium"
+                  onClick={() => setAuthModalOpen(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white transition-all duration-300 font-semibold shadow-lg shadow-blue-500/30 transform hover:scale-105 active:scale-95"
                   data-testid="login-btn"
                 >
                   <User className="w-4 h-4" />
@@ -184,7 +200,7 @@ export default function Layout({ children, currentPageName }) {
               </>
             ) : (
               <button
-                onClick={() => base44.auth.redirectToLogin()}
+                onClick={() => setAuthModalOpen(true)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-500 text-white transition-colors w-full font-medium"
               >
                 <User className="w-4 h-4" /> Entrar / Cadastrar
@@ -210,6 +226,12 @@ export default function Layout({ children, currentPageName }) {
       </footer>
 
       <TorrentNotificationPopup />
+      <AuthModal 
+        isOpen={authModalOpen} 
+        onClose={() => setAuthModalOpen(false)} 
+        onSuccess={handleAuthSuccess}
+      />
+      <Toaster position="top-right" theme="dark" />
     </div>
   );
 }

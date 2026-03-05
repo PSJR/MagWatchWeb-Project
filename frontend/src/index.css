@@ -34,6 +34,14 @@ code {
   .slide-in-from-bottom-5 {
     animation: slideInFromBottom 0.4s ease-out;
   }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .zoom-in-95 {
+    animation: zoomIn 0.2s ease-out;
+  }
 }
 
 @keyframes fadeIn {
@@ -52,6 +60,17 @@ code {
   }
   to {
     transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
     opacity: 1;
   }
 }

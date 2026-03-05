@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import VideoPlayer from '@/components/player/VideoPlayer';
 import FileQueue from '@/components/player/FileQueue';
+import FileSelectionModal from '@/components/FileSelectionModal';
 import { createPageUrl } from '@/utils';
 import { Loader2, AlertCircle } from 'lucide-react';
 import WebTorrent from 'webtorrent';
@@ -16,9 +17,11 @@ export default function Player() {
   const [status, setStatus] = useState('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [torrentFiles, setTorrentFiles] = useState([]);
+  const [allFiles, setAllFiles] = useState([]);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [videoUrl, setVideoUrl] = useState(null);
   const [torrentInfo, setTorrentInfo] = useState(null);
+  const [showFileModal, setShowFileModal] = useState(false);
   
   const clientRef = useRef(null);
   const torrentRef = useRef(null);
@@ -69,9 +72,15 @@ export default function Player() {
         return ['mp4', 'mkv', 'webm', 'avi', 'mov'].includes(ext);
       });
 
+      setAllFiles(torrent.files.map(f => ({
+        name: f.name,
+        length: f.length,
+        file: f
+      })));
+
       if (videoFiles.length === 0) {
-        setStatus('error');
-        setErrorMsg('Nenhum arquivo de v\u00eddeo encontrado no torrent');
+        setShowFileModal(true);
+        setStatus('waiting');
         return;
       }
 
@@ -140,6 +149,17 @@ export default function Player() {
     }
   };
 
+  const handleManualFileSelect = (index) => {
+    const selectedFile = allFiles[index];
+    setTorrentFiles([selectedFile]);
+    setCurrentFileIndex(0);
+    setShowFileModal(false);
+    
+    if (selectedFile.file && torrentRef.current) {
+      loadFile(selectedFile.file, torrentRef.current);
+    }
+  };
+
   if (status === 'loading') {
     return (
       <Layout currentPageName="Player">
@@ -150,6 +170,25 @@ export default function Player() {
             <p className="text-slate-400">Conectando aos peers e iniciando streaming</p>
           </div>
         </div>
+      </Layout>
+    );
+  }
+
+  if (status === 'waiting') {
+    return (
+      <Layout currentPageName="Player">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-2">Nenhum vídeo detectado</h2>
+            <p className="text-slate-400">Selecione o arquivo que deseja reproduzir</p>
+          </div>
+        </div>
+        <FileSelectionModal
+          files={allFiles}
+          onSelect={handleManualFileSelect}
+          onClose={() => navigate(createPageUrl('Home'))}
+        />
       </Layout>
     );
   }
@@ -167,7 +206,7 @@ export default function Player() {
               className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors"
               data-testid="back-home-btn"
             >
-              Voltar ao In\u00edcio
+              Voltar ao Início
             </button>
           </div>
         </div>
@@ -205,6 +244,14 @@ export default function Player() {
           </div>
         </div>
       </div>
+
+      {showFileModal && (
+        <FileSelectionModal
+          files={allFiles}
+          onSelect={handleManualFileSelect}
+          onClose={() => navigate(createPageUrl('Home'))}
+        />
+      )}
     </Layout>
   );
 }
