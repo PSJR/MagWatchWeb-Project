@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Floresta de Vale Alto — visualizador do mapa 2 km × 2 km</title>
+<style>
+  :root {
+    --panel: rgba(16, 24, 20, 0.82);
+    --edge: rgba(255, 255, 255, 0.14);
+    --ink: #eaf5ec;
+    --muted: #9fb6a6;
+    --accent: #7fd18c;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1512; }
+  body { font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); }
+  canvas { display: block; }
+
+  #loading {
+    position: fixed; inset: 0; display: grid; place-content: center; gap: 14px;
+    text-align: center; background: #0d1512; z-index: 50; transition: opacity .5s;
+  }
+  #loading h1 { font-size: 20px; margin: 0; font-weight: 600; letter-spacing: .3px; }
+  #loading p { margin: 0; color: var(--muted); }
+  #bar { width: 280px; height: 4px; border-radius: 4px; background: #1e2b24; overflow: hidden; }
+  #bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+
+  .panel {
+    position: fixed; background: var(--panel); border: 1px solid var(--edge);
+    border-radius: 12px; backdrop-filter: blur(10px); padding: 12px 14px;
+  }
+  #hud { top: 14px; left: 14px; width: 232px; }
+  #hud h2 { margin: 0 0 2px; font-size: 14px; font-weight: 650; }
+  #hud .sub { color: var(--muted); font-size: 11px; margin-bottom: 10px; }
+  .row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; font-variant-numeric: tabular-nums; }
+  .row span:first-child { color: var(--muted); }
+  label { display: block; margin-top: 10px; color: var(--muted); font-size: 11px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  select, button {
+    width: 100%; margin-top: 4px; padding: 6px 8px; border-radius: 8px; color: var(--ink);
+    background: #1b2721; border: 1px solid var(--edge); font: inherit; font-size: 12px; cursor: pointer;
+  }
+  .btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .btns button { margin: 0; }
+  button.on { background: var(--accent); color: #0d1512; border-color: transparent; font-weight: 600; }
+
+  #minimap { bottom: 14px; right: 14px; padding: 10px; }
+  #minimap canvas { width: 224px; height: 224px; border-radius: 6px; display: block; }
+  #minimap .cap { color: var(--muted); font-size: 10px; margin-top: 6px; text-align: center; }
+
+  #legend { bottom: 14px; left: 14px; width: 232px; }
+  #legend b { font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
+  #legend div.z { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 12px; }
+  #legend i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+  #help { top: 14px; right: 14px; max-width: 260px; font-size: 11px; color: var(--muted); }
+  #help kbd { background: #22302a; border: 1px solid var(--edge); border-radius: 4px; padding: 0 4px; color: var(--ink); }
+
+  #labels { position: fixed; inset: 0; pointer-events: none; }
+  .lab {
+    position: absolute; transform: translate(-50%, -100%); white-space: nowrap;
+    font-size: 11px; padding: 2px 7px; border-radius: 999px;
+    background: rgba(12, 20, 16, .74); border: 1px solid var(--edge);
+    color: var(--ink); text-shadow: 0 1px 2px #000;
+  }
+  .lab.hub { background: rgba(127, 209, 140, .9); color: #0d1512; font-weight: 600; border-color: transparent; }
+</style>
+</head>
+<body>
+  <div id="loading">
+    <h1>Floresta de Vale Alto</h1>
+    <p id="loading-msg">carregando mapa 2 km × 2 km…</p>
+    <div id="bar"><i></i></div>
+  </div>
+
+  <div id="hud" class="panel">
+    <h2>Floresta de Vale Alto</h2>
+    <div class="sub">2000 × 2000 m · 4 zonas · Kenney Mini Forest</div>
+    <div class="row"><span>Posição</span><b id="pos">—</b></div>
+    <div class="row"><span>Altitude</span><b id="alt">—</b></div>
+    <div class="row"><span>Zona</span><b id="zone">—</b></div>
+    <div class="row"><span>Instâncias</span><b id="inst">—</b></div>
+    <div class="row"><span>FPS</span><b id="fps">—</b></div>
+
+    <label>Ir para o marco</label>
+    <select id="goto"></select>
+
+    <label>Vento <span id="wind-val">1.0</span>×</label>
+    <input id="wind" type="range" min="0" max="3" step="0.05" value="1">
+
+    <label>Hora do dia <span id="time-val">14:00</span></label>
+    <input id="time" type="range" min="5" max="21" step="0.1" value="14">
+
+    <label>Distância de desenho <span id="dist-val">1200 m</span></label>
+    <input id="dist" type="range" min="300" max="2900" step="50" value="1200">
+
+    <div class="btns">
+      <button id="m-fly" class="on">Voo</button>
+      <button id="m-orbit">Órbita</button>
+      <button id="m-top">Mapa</button>
+    </div>
+    <button id="t-labels">Ocultar rótulos</button>
+  </div>
+
+  <div id="help" class="panel">
+    <b style="color:var(--ink)">Controles</b><br>
+    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> mover · <kbd>Q</kbd>/<kbd>E</kbd> descer/subir<br>
+    <kbd>Shift</kbd> correr · <kbd>Espaço</kbd> subir<br>
+    Clique na tela para travar o mouse e olhar em volta; <kbd>Esc</kbd> solta.<br>
+    No modo Órbita, arraste para girar e role para aproximar.
+  </div>
+
+  <div id="legend" class="panel">
+    <b>Zonas</b>
+    <div class="z"><i style="background:#7ebA60"></i>A · Vale das Tendas (NO)</div>
+    <div class="z"><i style="background:#968fb0"></i>B · Planalto das Torres (NE)</div>
+    <div class="z"><i style="background:#488258"></i>C · Mata Antiga (SO)</div>
+    <div class="z"><i style="background:#a8c46c"></i>D · Campos de Treino (SE)</div>
+  </div>
+
+  <div id="minimap" class="panel">
+    <canvas id="mini" width="448" height="448"></canvas>
+    <div class="cap">norte ↑ · (0,0) canto sudoeste</div>
+  </div>
+
+  <div id="labels"></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/three.module.min.js",
+      "three/addons/": "./vendor/three/addons/"
+    }
+  }
+  </script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
