@@ -36,12 +36,12 @@ Isso reescreve:
 
 | Saída | O que é |
 |---|---|
-| `assets/textures/heightmap_2k.png` | 1024², greyscale 16-bit, 0–150 m — para importar em engine |
+| `assets/textures/heightmap_2k.png` | 1024², greyscale 16-bit, 0–165 m — para importar em engine |
 | `assets/textures/heightmap_2k.u16.bin` | os mesmos dados em u16 little-endian, para leitura direta (o `<canvas>` do navegador reduz PNG 16-bit para 8 bits e cria degraus no terreno) |
 | `assets/textures/splatmap_2k.png` | RGBA = pesos de grama / terra-margem / rocha / musgo |
 | `assets/textures/minimap_2k.png` | preview sombreado, norte para cima |
 | `data/forest_map_2k.json` | mundo, iluminação, vento, 4 zonas, 3 rios, 2 lagos, 31 marcos, 1.155 estruturas |
-| `data/forest_map_2k.scatter.json` | 16.236 instâncias de vegetação/rocha em arrays compactos |
+| `data/forest_map_2k.scatter.json` | 16.268 instâncias de vegetação/rocha em arrays compactos |
 
 ## Como o gerador está organizado
 

@@ -12,7 +12,7 @@ from noise import Perlin, clamp, lerp, smoothstep
 
 WORLD_SIZE = 2000.0
 HEIGHT_MIN = 0.0
-HEIGHT_MAX = 150.0
+HEIGHT_MAX = 165.0   # encoding ceiling; the terrain itself peaks near 141 m
 HEIGHTMAP_RES = 1024
 
 SEED = 20260901
@@ -72,7 +72,7 @@ RIVERS = [
     },
     {
         "id": "corrego-escarpa",
-        "name": "Corrego da Escarpa",
+        "name": "Córrego da Escarpa",
         "points": [(0, 1080), (150, 1055), (300, 1035), (430, 1000), (560, 1012),
                    (700, 1030), (830, 1010), (940, 1002)],
         "elevation": [52, 48, 44, 41, 38, 35, 32, 30],
@@ -82,7 +82,7 @@ RIVERS = [
     },
     {
         "id": "ribeira-falcao",
-        "name": "Ribeira do Falcao",
+        "name": "Ribeira do Falcão",
         "points": [(2000, 1140), (1870, 1105), (1740, 1060), (1610, 1075), (1480, 1050),
                    (1400, 1030), (1280, 1010), (1150, 1000), (1040, 998)],
         "elevation": [88, 84, 79, 74, 68, 52, 40, 33, 30],
@@ -97,7 +97,7 @@ LAKES = [
     {"id": "lago-espelho", "name": "Lago Espelho", "x": 430, "z": 1700,
      "radius": 165.0, "shore": 90.0, "level": 24.0, "depth": 7.0,
      "shape": [(3, 0.115, 0.7), (5, 0.070, 2.4), (8, 0.038, 4.1)]},
-    {"id": "tarn-falcao", "name": "Espelho do Falcao", "x": 1815, "z": 1795,
+    {"id": "tarn-falcao", "name": "Espelho do Falcão", "x": 1815, "z": 1795,
      "radius": 62.0, "shore": 40.0, "level": 118.0, "depth": 4.0,
      "shape": [(3, 0.140, 1.9), (6, 0.065, 0.3)]},
 ]

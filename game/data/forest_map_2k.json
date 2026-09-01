@@ -11,7 +11,7 @@
   "origin": "south-west corner is (0,0); X grows east, Z grows north, Y is up",
   "height_range_m": [
    0.0,
-   150.0
+   165.0
   ],
   "asset_scale": 6.0,
   "heightmap": {
@@ -764,7 +764,7 @@
   },
   {
    "id": "corrego-escarpa",
-   "name": "Corrego da Escarpa",
+   "name": "C\u00f3rrego da Escarpa",
    "control_points": [
     [
      0,
@@ -1101,7 +1101,7 @@
   },
   {
    "id": "ribeira-falcao",
-   "name": "Ribeira do Falcao",
+   "name": "Ribeira do Falc\u00e3o",
    "control_points": [
     [
      2000,
@@ -1898,7 +1898,7 @@
   },
   {
    "id": "tarn-falcao",
-   "name": "Espelho do Falcao",
+   "name": "Espelho do Falc\u00e3o",
    "x": 1815,
    "z": 1795,
    "radius": 62.0,
@@ -2316,7 +2316,7 @@
    "y": 24.99,
    "pad_radius": 80,
    "instances": 58,
-   "description": "Hub inicial da zona norte-oeste: oito tendas azuis em circulo ao redor de uma fogueira de pedras, sobre terra batida e cercas baixas."
+   "description": "Hub inicial do quadrante noroeste: oito tendas azuis em c\u00edrculo ao redor de uma fogueira de pedras, sobre terra batida e cercas baixas."
   },
   {
    "id": "A2",
@@ -2328,7 +2328,7 @@
    "y": 20.49,
    "pad_radius": 22,
    "instances": 14,
-   "description": "Torre de madeira de 3 andares (18 m ate o deque) com telhado azul e bandeira, encarando o Lago Espelho."
+   "description": "Torre de madeira de 3 andares (18 m at\u00e9 o deque) com telhado azul e bandeira, encarando o Lago Espelho."
   },
   {
    "id": "A3",
@@ -2340,11 +2340,11 @@
    "y": 17.0,
    "pad_radius": null,
    "instances": 0,
-   "description": "Lago circular de 330 m de diametro, superficie a 24 m, margens rasas com juncos e pedras."
+   "description": "Lago de margem recortada, 330 m de ponta a ponta, superf\u00edcie a 24 m, com praia de areia e juncos em volta."
   },
   {
    "id": "A4",
-   "name": "Pier de Madeira",
+   "name": "P\u00eder de Madeira",
    "zone": "A",
    "kind": "platform",
    "x": 560,
@@ -2352,7 +2352,7 @@
    "y": 22.55,
    "pad_radius": null,
    "instances": 33,
-   "description": "Passarela de plataformas avancando 42 m sobre o lago, com bandeira na ponta."
+   "description": "Passarela de plataformas avan\u00e7ando 42 m sobre o lago, com bandeira na ponta."
   },
   {
    "id": "A5",
@@ -2364,11 +2364,11 @@
    "y": 27.14,
    "pad_radius": 60,
    "instances": 24,
-   "description": "Linha de treino curta com 4 alvos a 46 m, cerca de seguranca e tres arqueiros."
+   "description": "Linha de treino curta com 4 alvos a 46 m, cerca de seguran\u00e7a e tr\u00eas arqueiros."
   },
   {
    "id": "A6",
-   "name": "Circulo de Pedras",
+   "name": "C\u00edrculo de Pedras",
    "zone": "A",
    "kind": "ruin",
    "x": 720,
@@ -2376,11 +2376,11 @@
    "y": 29.92,
    "pad_radius": 40,
    "instances": 11,
-   "description": "Clareira ritual com nove monolitos roxos em circulo de 52 m e um estandarte central."
+   "description": "Clareira ritual com nove mon\u00f3litos roxos em c\u00edrculo de 52 m e um estandarte central."
   },
   {
    "id": "A7",
-   "name": "Posto Avancado Norte",
+   "name": "Posto Avan\u00e7ado Norte",
    "zone": "A",
    "kind": "platform",
    "x": 840,
@@ -2400,7 +2400,7 @@
    "y": 32.43,
    "pad_radius": null,
    "instances": 33,
-   "description": "Ponte de corda de 128 m sobre a garganta do Corrego da Escarpa; liga o Vale das Tendas (A) a Mata Antiga (C)."
+   "description": "Ponte de corda de 128 m sobre a garganta do C\u00f3rrego da Escarpa; liga o Vale das Tendas (A) \u00e0 Mata Antiga (C)."
   },
   {
    "id": "B1",
@@ -2412,7 +2412,7 @@
    "y": 108.11,
    "pad_radius": 32,
    "instances": 28,
-   "description": "Marco visual da zona: torre de 4 andares (24 m) no ponto alto do planalto, ligada por ponte curta a uma torre auxiliar de 2 andares."
+   "description": "Marco visual do mapa: torre de 4 andares (24 m) no ponto alto do planalto, ligada por ponte curta a uma torre auxiliar de 2 andares."
   },
   {
    "id": "B2",
@@ -2428,7 +2428,7 @@
   },
   {
    "id": "B3",
-   "name": "Penhasco do Falcao",
+   "name": "Penhasco do Falc\u00e3o",
    "zone": "B",
    "kind": "cliff",
    "x": 1850,
@@ -2436,7 +2436,7 @@
    "y": 128.42,
    "pad_radius": null,
    "instances": 31,
-   "description": "Mesa rochosa mais alta do mapa (~140 m), paredoes verticais, pinheiros altos na borda e um mirante sem telhado."
+   "description": "Mesa rochosa mais alta do mapa (141 m), pared\u00f5es de rocha roxa, pinheiros altos na borda e um mirante sem telhado."
   },
   {
    "id": "B4",
@@ -2448,7 +2448,7 @@
    "y": 82.1,
    "pad_radius": null,
    "instances": 19,
-   "description": "Queda d'agua onde a Ribeira do Falcao despenca ~16 m do planalto para o vale central; rampas de pedra descem ao lado."
+   "description": "Queda d'\u00e1gua onde a Ribeira do Falc\u00e3o despenca do planalto para o vale central; rampas de pedra descem ao lado."
   },
   {
    "id": "B5",
@@ -2460,7 +2460,7 @@
    "y": 135.54,
    "pad_radius": 70,
    "instances": 42,
-   "description": "Seis tendas azuis abrigadas atras de uma crista, com torre de 2 andares vigiando a aproximacao oeste."
+   "description": "Seis tendas azuis abrigadas atr\u00e1s de uma crista, com torre de 2 andares vigiando a aproxima\u00e7\u00e3o oeste."
   },
   {
    "id": "B6",
@@ -2476,7 +2476,7 @@
   },
   {
    "id": "B7",
-   "name": "Espelho do Falcao",
+   "name": "Espelho do Falc\u00e3o",
    "zone": "B",
    "kind": "water",
    "x": 1815,
@@ -2484,7 +2484,7 @@
    "y": 114.0,
    "pad_radius": null,
    "instances": 0,
-   "description": "Pequeno lago de altitude (124 m de diametro) encaixado na mesa, superficie a 118 m."
+   "description": "Pequeno lago de altitude (124 m de di\u00e2metro) encaixado na mesa, superf\u00edcie a 118 m."
   },
   {
    "id": "B8",
@@ -2496,7 +2496,7 @@
    "y": 38.89,
    "pad_radius": null,
    "instances": 20,
-   "description": "Travessia norte do Rio Prateado, 112 m de vao com torres de apoio; liga o Vale das Tendas (A) ao Planalto das Torres (B)."
+   "description": "Travessia norte do Rio Prateado, 80 m de v\u00e3o com torres de apoio; liga o Vale das Tendas (A) ao Planalto das Torres (B)."
   },
   {
    "id": "C1",
@@ -2508,19 +2508,19 @@
    "y": 68.9,
    "pad_radius": null,
    "instances": 43,
-   "description": "Nucleo da mata fechada: pinheiros altos com copas sobrepostas e pouca visibilidade horizontal."
+   "description": "N\u00facleo da mata fechada: pinheiros altos com copas sobrepostas e pouca visibilidade horizontal."
   },
   {
    "id": "C2",
-   "name": "Ruinas da Clareira",
+   "name": "Ru\u00ednas da Clareira",
    "zone": "C",
    "kind": "ruin",
    "x": 520,
    "z": 720,
-   "y": 66.59,
+   "y": 66.58,
    "pad_radius": 46,
    "instances": 18,
-   "description": "Seis pilares de madeira em circulo, tres ainda com deque, tomados por musgo e pedras."
+   "description": "Seis pilares de madeira em c\u00edrculo, tr\u00eas ainda com deque, tomados por musgo e pedras."
   },
   {
    "id": "C3",
@@ -2536,7 +2536,7 @@
   },
   {
    "id": "C4",
-   "name": "Torre Cacadora",
+   "name": "Torre Ca\u00e7adora",
    "zone": "C",
    "kind": "tower",
    "x": 250,
@@ -2556,7 +2556,7 @@
    "y": 59.99,
    "pad_radius": null,
    "instances": 63,
-   "description": "Trilha cercada de 780 m ligando a Ponte da Escarpa (A8) a Ponte Baixa (D5), marcada por estandartes."
+   "description": "Trilha cercada de 780 m ligando a Ponte da Escarpa (A8) \u00e0 Ponte Baixa (D5), marcada por estandartes."
   },
   {
    "id": "C6",
@@ -2580,7 +2580,7 @@
    "y": 58.77,
    "pad_radius": null,
    "instances": 23,
-   "description": "Afloramento de rocha roxa no flanco da Escarpa, com rampa escalavel."
+   "description": "Afloramento de rocha roxa no flanco da Escarpa, com rampa escal\u00e1vel."
   },
   {
    "id": "D1",
@@ -2592,7 +2592,7 @@
    "y": 15.15,
    "pad_radius": 110,
    "instances": 68,
-   "description": "Campo principal de tiro: oito alvos a 46 m, arena cercada de 136 x 72 m e bandeiras nos cantos."
+   "description": "Campo principal de tiro: oito alvos a 46 m, arena cercada de 136 \u00d7 72 m e bandeiras nos cantos."
   },
   {
    "id": "D2",
@@ -2616,7 +2616,7 @@
    "y": 13.32,
    "pad_radius": 120,
    "instances": 85,
-   "description": "Maior assentamento do mapa: 15 tendas em dois circulos, cercado longo e torre de vigia sudeste."
+   "description": "Maior assentamento do mapa: 15 tendas em dois c\u00edrculos, cercado longo e torre de vigia a sudeste."
   },
   {
    "id": "D4",
@@ -2628,7 +2628,7 @@
    "y": 22.34,
    "pad_radius": null,
    "instances": 41,
-   "description": "Cratera de extracao de 330 m com paredes de ~34 m, blocos roxos espalhados e rampa de saida a noroeste."
+   "description": "Cratera de extra\u00e7\u00e3o de 330 m com paredes de 34 m, blocos roxos espalhados e rampa de sa\u00edda a noroeste."
   },
   {
    "id": "D5",
@@ -2652,7 +2652,7 @@
    "y": 67.37,
    "pad_radius": null,
    "instances": 30,
-   "description": "Travessia da Ribeira do Falcao; liga os Campos de Treino (D) ao Planalto das Torres (B)."
+   "description": "Travessia da Ribeira do Falc\u00e3o; liga os Campos de Treino (D) ao Planalto das Torres (B)."
   },
   {
    "id": "D7",
@@ -2668,7 +2668,7 @@
   },
   {
    "id": "H1",
-   "name": "Cruz da Confluencia",
+   "name": "Cruz da Conflu\u00eancia",
    "zone": "H",
    "kind": "hub",
    "x": 1000,
@@ -2676,7 +2676,7 @@
    "y": 26.25,
    "pad_radius": 90,
    "instances": 158,
-   "description": "Coracao do mapa, onde os tres cursos d'agua se encontram: deque central de 30 x 30 m a 24 m de altura, quatro torres nos cantos e quatro pontes de corda irradiando para as quatro zonas."
+   "description": "Cora\u00e7\u00e3o do mapa, onde os tr\u00eas cursos d'\u00e1gua se encontram: deque central de 30 \u00d7 30 m a 24 m de altura, quatro torres nos cantos e quatro pontes de corda irradiando para as quatro zonas."
   }
  ],
  "structures": [
@@ -4491,7 +4491,7 @@
    "group": "nature",
    "pos": [
     746.0,
-    34.71,
+    34.7,
     1780.0
    ],
    "ry": 0.0,
@@ -4533,7 +4533,7 @@
    "group": "nature",
    "pos": [
     707.0,
-    35.45,
+    35.44,
     1802.52
    ],
    "ry": 120.0,
@@ -4589,7 +4589,7 @@
    "group": "nature",
    "pos": [
     724.51,
-    33.83,
+    33.82,
     1754.39
    ],
    "ry": 280.0,
@@ -5485,7 +5485,7 @@
    "group": "structures",
    "pos": [
     433.4,
-    64.8,
+    64.81,
     936.0
    ],
    "ry": 90.0,
@@ -7683,7 +7683,7 @@
    "group": "nature",
    "pos": [
     1861.19,
-    124.72,
+    124.71,
     1885.74
    ],
    "ry": 316.8,
@@ -9139,7 +9139,7 @@
    "group": "nature",
    "pos": [
     1328.42,
-    134.26,
+    134.25,
     1380.45
    ],
    "ry": 280.2,
@@ -9209,7 +9209,7 @@
    "group": "structures",
    "pos": [
     975.38,
-    67.71,
+    67.7,
     1520.0
    ],
    "ry": 180.0,
@@ -9321,7 +9321,7 @@
    "group": "structures",
    "pos": [
     1024.62,
-    67.71,
+    67.7,
     1520.0
    ],
    "ry": 180.0,
@@ -9713,7 +9713,7 @@
    "group": "nature",
    "pos": [
     237.31,
-    72.08,
+    72.07,
     482.81
    ],
    "ry": 281.5,
@@ -10063,7 +10063,7 @@
    "group": "structures",
    "pos": [
     550.0,
-    66.59,
+    66.58,
     720.0
    ],
    "ry": 0.0,
@@ -10077,7 +10077,7 @@
    "group": "structures",
    "pos": [
     550.0,
-    72.59,
+    72.58,
     720.0
    ],
    "ry": 0.0,
@@ -10091,7 +10091,7 @@
    "group": "structures",
    "pos": [
     535.0,
-    66.59,
+    66.58,
     745.98
    ],
    "ry": 60.0,
@@ -10105,7 +10105,7 @@
    "group": "structures",
    "pos": [
     505.0,
-    66.59,
+    66.58,
     745.98
    ],
    "ry": 120.0,
@@ -10119,7 +10119,7 @@
    "group": "structures",
    "pos": [
     505.0,
-    72.59,
+    72.58,
     745.98
    ],
    "ry": 120.0,
@@ -10133,7 +10133,7 @@
    "group": "structures",
    "pos": [
     490.0,
-    66.59,
+    66.58,
     720.0
    ],
    "ry": 180.0,
@@ -10147,7 +10147,7 @@
    "group": "structures",
    "pos": [
     505.0,
-    66.59,
+    66.58,
     694.02
    ],
    "ry": 240.0,
@@ -10161,7 +10161,7 @@
    "group": "structures",
    "pos": [
     505.0,
-    72.59,
+    72.58,
     694.02
    ],
    "ry": 240.0,
@@ -10175,7 +10175,7 @@
    "group": "structures",
    "pos": [
     535.0,
-    66.59,
+    66.58,
     694.02
    ],
    "ry": 300.0,
@@ -10189,7 +10189,7 @@
    "group": "nature",
    "pos": [
     520,
-    66.59,
+    66.58,
     720
    ],
    "ry": 0.0,
@@ -10217,7 +10217,7 @@
    "group": "nature",
    "pos": [
     528.04,
-    66.59,
+    66.58,
     711.27
    ],
    "ry": 165.0,
@@ -10231,7 +10231,7 @@
    "group": "nature",
    "pos": [
     497.14,
-    66.59,
+    66.58,
     734.71
    ],
    "ry": 357.6,
@@ -10245,7 +10245,7 @@
    "group": "nature",
    "pos": [
     525.95,
-    66.59,
+    66.58,
     733.67
    ],
    "ry": 316.8,
@@ -10259,7 +10259,7 @@
    "group": "nature",
    "pos": [
     550.83,
-    66.59,
+    66.58,
     728.08
    ],
    "ry": 317.3,
@@ -10273,7 +10273,7 @@
    "group": "nature",
    "pos": [
     523.24,
-    66.59,
+    66.58,
     713.47
    ],
    "ry": 206.3,
@@ -10287,7 +10287,7 @@
    "group": "nature",
    "pos": [
     510.38,
-    66.59,
+    66.58,
     713.46
    ],
    "ry": 225.6,
@@ -10301,7 +10301,7 @@
    "group": "nature",
    "pos": [
     532.8,
-    66.59,
+    66.58,
     737.9
    ],
    "ry": 249.4,
@@ -10679,7 +10679,7 @@
    "group": "nature",
    "pos": [
     703.08,
-    51.96,
+    51.95,
     408.45
    ],
    "ry": 150.1,
@@ -10987,7 +10987,7 @@
    "group": "structures",
    "pos": [
     443.12,
-    65.86,
+    65.85,
     949.38
    ],
    "ry": 237.5,
@@ -11099,7 +11099,7 @@
    "group": "structures",
    "pos": [
     510.0,
-    66.29,
+    66.3,
     840.0
    ],
    "ry": 243.4,
@@ -11197,7 +11197,7 @@
    "group": "structures",
    "pos": [
     556.67,
-    66.59,
+    66.58,
     746.67
    ],
    "ry": 243.4,
@@ -11407,7 +11407,7 @@
    "group": "structures",
    "pos": [
     721.11,
-    63.0,
+    63.01,
     578.89
    ],
    "ry": 225.0,
@@ -11743,7 +11743,7 @@
    "group": "nature",
    "pos": [
     560,
-    66.59,
+    66.58,
     740
    ],
    "ry": 0.0,
@@ -12443,7 +12443,7 @@
    "group": "nature",
    "pos": [
     148.96,
-    65.52,
+    65.51,
     849.87
    ],
    "ry": 161.8,
@@ -13143,7 +13143,7 @@
    "group": "structures",
    "pos": [
     1571.81,
-    13.66,
+    13.67,
     346.0
    ],
    "ry": 180.0,
@@ -13395,7 +13395,7 @@
    "group": "structures",
    "pos": [
     1588.0,
-    13.74,
+    13.75,
     375.45
    ],
    "ry": 90.0,
@@ -15985,7 +15985,7 @@
    "group": "nature",
    "pos": [
     1018,
-    21.23,
+    21.24,
     396
    ],
    "ry": 141.0,

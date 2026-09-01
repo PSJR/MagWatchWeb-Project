@@ -7,7 +7,7 @@ de arco e flecha, pinheiros estilizados, rochas roxas e manchas de grama.
 
 Tudo neste documento é **gerado e verificado por código**: `game/tools/gen_forest_map.py`
 produz o heightmap, os mapas de material, o minimapa e o posicionamento de cada
-uma das 17.033 instâncias. As coordenadas abaixo saem direto do JSON gerado.
+uma das 17.423 instâncias. As coordenadas abaixo saem direto do JSON gerado.
 
 ---
 
@@ -19,12 +19,12 @@ uma das 17.033 instâncias. As coordenadas abaixo saem direto do JSON gerado.
 |---|---|
 | Dimensões | **2000 m × 2000 m** (4 km², exatamente 2 km × 2 km) |
 | Sistema de coordenadas | canto **sudoeste = (0, 0)**, nordeste = (2000, 2000). X cresce para leste, Z para norte, Y é altura |
-| Faixa de altitude | 0 m a 150 m (ponto mais alto real: **141 m**, no Penhasco do Falcão) |
-| Heightmap | 1024 × 1024, 16 bits (≈ 1,95 m por texel, 2,3 mm de precisão vertical) |
+| Faixa de altitude | codificada de 0 a 165 m; o terreno chega a **156 m** (Penhasco do Falcão) |
+| Heightmap | 1024 × 1024, 16 bits (≈ 1,95 m por texel, 2,5 mm de precisão vertical) |
 | Escala dos assets | 1 unidade do kit = **6 m**. Um pinheiro `tree` tem 10,1 m; `tree-high`, 13,7 m; um módulo de plataforma, 6 × 6 m; um andar de torre, 6 m |
 | Marcos catalogados | **31** |
-| Instâncias colocadas à mão (marcos) | 1.154 |
-| Instâncias de vegetação/rocha procedural | 15.879 |
+| Instâncias colocadas à mão (marcos) | 1.155 |
+| Instâncias de vegetação/rocha procedural | 16.268 |
 | Zonas | 4 quadrantes de **1 km² cada**, com transição suave de 620 m entre eles |
 
 ### Leitura do mapa em uma frase
@@ -40,14 +40,14 @@ mais o hub central de plataformas elevadas são o que volta a costurá-los.
             │                   │                   │
             │   ZONA A          │   ZONA B          │
             │   Vale das Tendas │   Planalto        │   ← norte
-            │   ~30 m           │   das Torres      │
-            │   lago, camp base │   92–141 m, mesas │
+            │   ~29 m           │   das Torres      │
+            │   lago, camp base │   53–156 m, mesas │
    Rio ────►│···· A8 ponte ·····│···· B8 ponte ·····│
    Prateado ├───────── H1 Cruz da Confluência ──────┤   (1000,1000)
    (N→S)    │···· D5 ponte ·····│···· D6 ponte ·····│
             │   ZONA C          │   ZONA D          │
             │   Mata Antiga     │   Campos de Treino│
-            │   42–80 m, densa  │   13–22 m, aberta │
+            │   34–78 m, densa  │   13–54 m, aberta │
             │                   │   + pedreira      │
             └───────────────────┴───────────────────┘
         (0,0)                                          (2000,0)
@@ -57,8 +57,8 @@ mais o hub central de plataformas elevadas são o que volta a costurá-los.
 
 | Elemento | Onde | Altura |
 |---|---|---|
-| Planalto em mesas (degraus com paredões verticais) | Zona B inteira | 92 → 141 m |
-| Penhasco do Falcão (ponto culminante) | (1850, 1860) | **141 m** |
+| Planalto em mesas (degraus com paredões verticais) | Zona B inteira | 53 → 156 m |
+| Penhasco do Falcão (ponto culminante) | (1850, 1860) | **156 m** |
 | Escarpa da Serra Velha (falésia contínua leste–oeste) | z ≈ 1000, de x=0 a x=900 | degrau de **27 m**, Zona C acima da Zona A |
 | Ravina do Musgo (fenda) | (560,620) → (860,360) | **−26 m** abaixo do terreno |
 | Pedreira Roxa (cratera de extração) | (1840, 640) | plataforma rochosa a 56 m, fundo a 22 m → paredes de **34 m** |
@@ -97,7 +97,7 @@ mais o hub central de plataformas elevadas são o que volta a costurá-los.
 
 ### Zona A — Vale das Tendas *(noroeste, 0–1000 × 1000–2000)*
 
-**Altitude 21–48 m · relevo suave · a zona inicial.**
+**Altitude 21–57 m · relevo suave · a zona inicial.**
 
 O vale mais aberto e mais claro do mapa. Colinas baixas de grama, bosques
 espalhados de `tree` (o pinheiro médio) e um grande lago circular no norte.
@@ -122,7 +122,7 @@ no fundo da garganta. A única passagem é a **Ponte Suspensa da Escarpa** (A8),
 
 ### Zona B — Planalto das Torres *(nordeste, 1000–2000 × 1000–2000)*
 
-**Altitude 92–141 m · a zona vertical · o marco visual do mapa.**
+**Altitude 53–156 m · a zona vertical · o marco visual do mapa.**
 
 O quadrante mais alto e mais dramático. O terreno aqui é gerado com ruído
 *ridged* terraceado em quatro degraus, o que produz **mesas de topo plano com
@@ -131,12 +131,12 @@ exposta nas encostas.
 
 A **Grande Torre de Vigia** (B1) é o ponto de referência de todo o mapa: quatro
 andares, 24 m de estrutura de madeira até o deque, telhado azul e bandeira, a
-105 m de altitude — visível de qualquer canto do mapa. Ao lado, a **Fortaleza
+108 m de altitude — visível de qualquer canto do mapa. Ao lado, a **Fortaleza
 Suspensa** (B2) é uma rede de deques a 18 m e 24 m do chão ligados por ponte de
 corda, com torre de guarda e escadas: 115 instâncias, a segunda estrutura mais
 complexa do mapa.
 
-O **Penhasco do Falcão** (B3) é o ponto culminante, 141 m, com o pequeno **Espelho
+O **Penhasco do Falcão** (B3) é o ponto culminante, 156 m, com o pequeno **Espelho
 do Falcão** (B7) encaixado na mesa a 118 m. A oeste, a **Ribeira do Falcão**
 despenca do planalto na **Cascata do Afluente** (B4) — 88 m de altitude na borda
 leste do mapa, 30 m na confluência central.
@@ -151,7 +151,7 @@ Subir aqui é parte do design: a **Escadaria da Rocha** (B6) — nove rampas
 
 ### Zona C — Mata Antiga *(sudoeste, 0–1000 × 0–1000)*
 
-**Altitude 42–80 m · a zona fechada · pouca visibilidade.**
+**Altitude 34–78 m · a zona fechada · pouca visibilidade.**
 
 A floresta de verdade. Densidade de espalhamento **quase o dobro** de qualquer
 outra zona (célula de 11 m, 88% de ocupação, 58% `tree-high`), com o canal de
@@ -175,7 +175,7 @@ afloramento escalável.
 
 ### Zona D — Campos de Treino *(sudeste, 1000–2000 × 0–1000)*
 
-**Altitude 13–56 m · a zona aberta · o campo de arco e flecha.**
+**Altitude 13–54 m · a zona aberta · o campo de arco e flecha.**
 
 O quadrante mais plano e mais claro, feito para combate à distância e para
 espaço de manobra. Prados amplos com bosques isolados, exatamente o oposto da
@@ -224,19 +224,19 @@ de água, é a altura do **leito**; a superfície está na tabela de hidrografia
 |---|---|---|---|---|---|---|
 | **H1** | **Cruz da Confluência** | centro | **(1000, 1000)** | 26 m | hub | 158 |
 | A1 | Acampamento do Vale | A | (330, 1420) | 25 m | acampamento | 58 |
-| A2 | Torre de Vigia do Lago | A | (250, 1560) | 21 m | torre | 14 |
+| A2 | Torre de Vigia do Lago | A | (250, 1560) | 20 m | torre | 14 |
 | A3 | Lago Espelho | A | (430, 1700) | 17 m | água | — |
-| A4 | Píer de Madeira | A | (560, 1640) | 22 m | plataforma | 33 |
+| A4 | Píer de Madeira | A | (560, 1640) | 23 m | plataforma | 33 |
 | A5 | Campo de Tiro do Novato | A | (600, 1300) | 27 m | alvos | 24 |
 | A6 | Círculo de Pedras | A | (720, 1780) | 30 m | ruína | 11 |
 | A7 | Posto Avançado Norte | A | (840, 1870) | 44 m | plataforma | 36 |
 | A8 | Ponte Suspensa da Escarpa | A | (430, 1000) | 32 m | ponte | 33 |
-| B1 | Grande Torre de Vigia | B | (1520, 1560) | 105 m | torre | 28 |
-| B2 | Fortaleza Suspensa | B | (1660, 1720) | 128 m | plataforma | 115 |
-| B3 | Penhasco do Falcão | B | (1850, 1860) | 123 m | penhasco | 31 |
-| B4 | Cascata do Afluente | B | (1400, 1080) | 80 m | água | 19 |
-| B5 | Acampamento do Planalto | B | (1280, 1790) | 131 m | acampamento | 42 |
-| B6 | Escadaria da Rocha | B | (1300, 1400) | 120 m | caminho | 20 |
+| B1 | Grande Torre de Vigia | B | (1520, 1560) | 108 m | torre | 28 |
+| B2 | Fortaleza Suspensa | B | (1660, 1720) | 130 m | plataforma | 115 |
+| B3 | Penhasco do Falcão | B | (1850, 1860) | 128 m | penhasco | 31 |
+| B4 | Cascata do Afluente | B | (1400, 1080) | 82 m | água | 19 |
+| B5 | Acampamento do Planalto | B | (1280, 1790) | 136 m | acampamento | 42 |
+| B6 | Escadaria da Rocha | B | (1300, 1400) | 123 m | caminho | 20 |
 | B7 | Espelho do Falcão | B | (1815, 1795) | 114 m | água | — |
 | B8 | Ponte do Vau | B | (1000, 1520) | 39 m | ponte | 20 |
 | C1 | Bosque Denso | C | (300, 620) | 69 m | floresta | 43 |
@@ -251,7 +251,7 @@ de água, é a altura do **leito**; a superfície está na tabela de hidrografia
 | D3 | Vila das Tendas Azuis | D | (1700, 280) | 13 m | acampamento | 85 |
 | D4 | Pedreira Roxa | D | (1840, 640) | 22 m | penhasco | 41 |
 | D5 | Ponte Baixa das Pedras | D | (1010, 430) | 12 m | ponte | 30 |
-| D6 | Ponte do Afluente | D | (1560, 1060) | 67 m | ponte | 29 |
+| D6 | Ponte do Afluente | D | (1560, 1060) | 67 m | ponte | 30 |
 | D7 | Campo das Bandeiras | D | (1250, 250) | 20 m | ruína | 14 |
 
 ### Checklist dos elementos obrigatórios da referência
@@ -263,8 +263,8 @@ de água, é a altura do **leito**; a superfície está na tabela de hidrografia
 | Plataformas elevadas com escadas | A4, A7, B2, D2, H1, C2 (ruína) |
 | Tendas azuis | A1 (8), B5 (6), D3 (15), + tendas isoladas em A7, B2, C4 — **32 tendas** |
 | Alvos de tiro ao arco | A5 (4), C6 (5), D1 (8), + alvos isolados em C4 e D7 — **19 alvos** |
-| Grupos de pinheiros | 7.259 árvores (`tree` + `tree-high`), com C1 como bosque de referência |
-| Rochas roxas | C7, D4, B3, + 749 rochas espalhadas |
+| Grupos de pinheiros | 7.238 árvores (`tree` + `tree-high`), com C1 como bosque de referência |
+| Rochas roxas | C7, D4, B3, + 750 rochas espalhadas |
 | Clareiras | A6, C2, C6, D7 e as clareiras procedurais criadas pelo ruído de agrupamento |
 
 ---
@@ -287,14 +287,14 @@ game/
 │   │   └── weapons/                # weapon-bow, weapon-arrow
 │   ├── textures/
 │   │   ├── colormap.png            # 512² — atlas de paleta compartilhado por todos os modelos
-│   │   ├── heightmap_2k.png        # 1024² greyscale 16-bit — importar em Unity/Unreal/Godot
+│   │   ├── heightmap_2k.png        # 1024² greyscale 16-bit, 0–165 m — importar em engine
 │   │   ├── heightmap_2k.u16.bin    # mesmos dados, u16 little-endian, para leitura direta
 │   │   ├── splatmap_2k.png         # RGBA = grama / terra / rocha / musgo
 │   │   └── minimap_2k.png          # preview sombreado, norte para cima
 │   └── source/kenney-reference.png # imagem de referência do estilo
 ├── data/
-│   ├── forest_map_2k.json          # mundo, zonas, rios, lagos, 31 marcos, 1.154 estruturas
-│   └── forest_map_2k.scatter.json  # 15.879 instâncias em arrays compactos por modelo
+│   ├── forest_map_2k.json          # mundo, zonas, rios, lagos, 31 marcos, 1.155 estruturas
+│   └── forest_map_2k.scatter.json  # 16.268 instâncias em arrays compactos por modelo
 ├── tools/                          # o gerador (Python 3, só stdlib)
 │   ├── gen_forest_map.py           # ponto de entrada
 │   ├── terrain.py                  # campo de altura, zonas, rios, escarpa
@@ -344,7 +344,7 @@ game/
 ### Pipeline recomendado por engine
 
 - **Unity** — importar `heightmap_2k.png` como RAW/16-bit no Terrain (resolução
-  1025, tamanho 2000 × 150 × 2000). Ler os dois JSON num `ScriptableObject` e
+  1025, tamanho 2000 × 165 × 2000). Ler os dois JSON num `ScriptableObject` e
   instanciar as camadas de scatter como `Graphics.DrawMeshInstanced` (limite de
   1023 por lote) ou como *Terrain Details*. O `splatmap_2k.png` vira os pesos
   das quatro `TerrainLayers`.
@@ -363,7 +363,7 @@ O visualizador divide cada camada em blocos de **250 m × 250 m** (8 × 8 sobre 
 mapa) e cria um `InstancedMesh` por par *(modelo, bloco)*. Isso dá a cada malha
 uma esfera envolvente justa, o que faz o *frustum culling* funcionar de verdade
 num mapa deste tamanho e permite cortar por distância de desenho sem reconstruir
-buffers. Com 17.033 instâncias o resultado são ~120 *draw calls* visíveis por
+buffers. Com 17.423 instâncias o resultado são ~120 *draw calls* visíveis por
 quadro em vez de 17 mil.
 
 ---

@@ -318,128 +318,103 @@ LANDMARKS = [
     # --- Zone A -----------------------------------------------------------
     dict(id="A1", name="Acampamento do Vale", zone="A", kind="camp", x=330, z=1420,
          pad=(80, 70), build=_a_acampamento,
-         desc="Hub inicial da zona norte-oeste: oito tendas azuis em circulo ao redor "
-              "de uma fogueira de pedras, sobre terra batida e cercas baixas."),
+         desc="Hub inicial do quadrante noroeste: oito tendas azuis em círculo ao redor de uma fogueira de pedras, sobre terra batida e cercas baixas."),
     dict(id="A2", name="Torre de Vigia do Lago", zone="A", kind="tower", x=250, z=1560,
          pad=(22, 30), build=_a_torre_lago,
-         desc="Torre de madeira de 3 andares (18 m ate o deque) com telhado azul e "
-              "bandeira, encarando o Lago Espelho."),
+         desc="Torre de madeira de 3 andares (18 m até o deque) com telhado azul e bandeira, encarando o Lago Espelho."),
     dict(id="A3", name="Lago Espelho", zone="A", kind="water", x=430, z=1700,
          pad=None, build=None,
-         desc="Lago circular de 330 m de diametro, superficie a 24 m, margens rasas "
-              "com juncos e pedras."),
-    dict(id="A4", name="Pier de Madeira", zone="A", kind="platform", x=560, z=1640,
+         desc="Lago de margem recortada, 330 m de ponta a ponta, superfície a 24 m, com praia de areia e juncos em volta."),
+    dict(id="A4", name="Píer de Madeira", zone="A", kind="platform", x=560, z=1640,
          pad=None, build=_a_pier,
-         desc="Passarela de plataformas avancando 42 m sobre o lago, com bandeira na ponta."),
+         desc="Passarela de plataformas avançando 42 m sobre o lago, com bandeira na ponta."),
     dict(id="A5", name="Campo de Tiro do Novato", zone="A", kind="range", x=600, z=1300,
          pad=(60, 55), build=_a_campo_novato,
-         desc="Linha de treino curta com 4 alvos a 46 m, cerca de seguranca e tres arqueiros."),
-    dict(id="A6", name="Circulo de Pedras", zone="A", kind="ruin", x=720, z=1780,
+         desc="Linha de treino curta com 4 alvos a 46 m, cerca de segurança e três arqueiros."),
+    dict(id="A6", name="Círculo de Pedras", zone="A", kind="ruin", x=720, z=1780,
          pad=(40, 45), build=_a_circulo_pedras,
-         desc="Clareira ritual com nove monolitos roxos em circulo de 52 m e um "
-              "estandarte central."),
-    dict(id="A7", name="Posto Avancado Norte", zone="A", kind="platform", x=840, z=1870,
+         desc="Clareira ritual com nove monólitos roxos em círculo de 52 m e um estandarte central."),
+    dict(id="A7", name="Posto Avançado Norte", zone="A", kind="platform", x=840, z=1870,
          pad=(45, 45), build=_a_posto_norte,
          desc="Deque elevado 12 m sobre estacas, com escadas, torre menor de apoio e tenda."),
     dict(id="A8", name="Ponte Suspensa da Escarpa", zone="A", kind="bridge", x=430, z=1000,
          pad=None, build=_a_ponte_escarpa,
-         desc="Ponte de corda de 128 m sobre a garganta do Corrego da Escarpa; liga "
-              "o Vale das Tendas (A) a Mata Antiga (C)."),
+         desc="Ponte de corda de 128 m sobre a garganta do Córrego da Escarpa; liga o Vale das Tendas (A) à Mata Antiga (C)."),
 
     # --- Zone B -----------------------------------------------------------
     dict(id="B1", name="Grande Torre de Vigia", zone="B", kind="tower", x=1520, z=1560,
          pad=(32, 40), build=_b_grande_torre,
-         desc="Marco visual da zona: torre de 4 andares (24 m) no ponto alto do planalto, "
-              "ligada por ponte curta a uma torre auxiliar de 2 andares."),
+         desc="Marco visual do mapa: torre de 4 andares (24 m) no ponto alto do planalto, ligada por ponte curta a uma torre auxiliar de 2 andares."),
     dict(id="B2", name="Fortaleza Suspensa", zone="B", kind="platform", x=1660, z=1720,
          pad=(90, 70), build=_b_fortaleza,
-         desc="Rede de deques a 18 m e 24 m de altura unidos por ponte de corda, "
-              "com torre de guarda e escadas de acesso."),
-    dict(id="B3", name="Penhasco do Falcao", zone="B", kind="cliff", x=1850, z=1860,
+         desc="Rede de deques a 18 m e 24 m de altura unidos por ponte de corda, com torre de guarda e escadas de acesso."),
+    dict(id="B3", name="Penhasco do Falcão", zone="B", kind="cliff", x=1850, z=1860,
          pad=None, build=_b_penhasco_falcao,
-         desc="Mesa rochosa mais alta do mapa (~140 m), paredoes verticais, pinheiros "
-              "altos na borda e um mirante sem telhado."),
+         desc="Mesa rochosa mais alta do mapa (141 m), paredões de rocha roxa, pinheiros altos na borda e um mirante sem telhado."),
     dict(id="B4", name="Cascata do Afluente", zone="B", kind="water", x=1400, z=1080,
          pad=None, build=_b_cascata,
-         desc="Queda d'agua onde a Ribeira do Falcao despenca ~16 m do planalto para "
-              "o vale central; rampas de pedra descem ao lado."),
+         desc="Queda d'água onde a Ribeira do Falcão despenca do planalto para o vale central; rampas de pedra descem ao lado."),
     dict(id="B5", name="Acampamento do Planalto", zone="B", kind="camp", x=1280, z=1790,
          pad=(70, 60), build=_b_acampamento_planalto,
-         desc="Seis tendas azuis abrigadas atras de uma crista, com torre de 2 andares "
-              "vigiando a aproximacao oeste."),
+         desc="Seis tendas azuis abrigadas atrás de uma crista, com torre de 2 andares vigiando a aproximação oeste."),
     dict(id="B6", name="Escadaria da Rocha", zone="B", kind="path", x=1300, z=1400,
          pad=None, build=_b_escadaria,
-         desc="Nove rampas de pedra mais escadas de madeira: a subida principal do "
-              "vale central para o planalto."),
-    dict(id="B7", name="Espelho do Falcao", zone="B", kind="water", x=1815, z=1795,
+         desc="Nove rampas de pedra mais escadas de madeira: a subida principal do vale central para o planalto."),
+    dict(id="B7", name="Espelho do Falcão", zone="B", kind="water", x=1815, z=1795,
          pad=None, build=None,
-         desc="Pequeno lago de altitude (124 m de diametro) encaixado na mesa, "
-              "superficie a 118 m."),
+         desc="Pequeno lago de altitude (124 m de diâmetro) encaixado na mesa, superfície a 118 m."),
     dict(id="B8", name="Ponte do Vau", zone="B", kind="bridge", x=1000, z=1520,
          pad=None, build=_b_ponte_vau,
-         desc="Travessia norte do Rio Prateado, 112 m de vao com torres de apoio; "
-              "liga o Vale das Tendas (A) ao Planalto das Torres (B)."),
+         desc="Travessia norte do Rio Prateado, 80 m de vão com torres de apoio; liga o Vale das Tendas (A) ao Planalto das Torres (B)."),
 
     # --- Zone C -----------------------------------------------------------
     dict(id="C1", name="Bosque Denso", zone="C", kind="forest", x=300, z=620,
          pad=None, build=_c_bosque_denso,
-         desc="Nucleo da mata fechada: pinheiros altos com copas sobrepostas e pouca "
-              "visibilidade horizontal."),
-    dict(id="C2", name="Ruinas da Clareira", zone="C", kind="ruin", x=520, z=720,
+         desc="Núcleo da mata fechada: pinheiros altos com copas sobrepostas e pouca visibilidade horizontal."),
+    dict(id="C2", name="Ruínas da Clareira", zone="C", kind="ruin", x=520, z=720,
          pad=(46, 50), build=_c_ruinas,
-         desc="Seis pilares de madeira em circulo, tres ainda com deque, tomados por "
-              "musgo e pedras."),
+         desc="Seis pilares de madeira em círculo, três ainda com deque, tomados por musgo e pedras."),
     dict(id="C3", name="Ravina do Musgo", zone="C", kind="bridge", x=700, z=470,
          pad=None, build=_c_ravina,
          desc="Fenda de 26 m de profundidade cruzada por ponte de corda diagonal de 110 m."),
-    dict(id="C4", name="Torre Cacadora", zone="C", kind="tower", x=250, z=300,
+    dict(id="C4", name="Torre Caçadora", zone="C", kind="tower", x=250, z=300,
          pad=(24, 30), build=_c_torre_cacadora,
          desc="Torre isolada de 3 andares no sul da mata, com tenda de apoio e alvo de treino."),
     dict(id="C5", name="Trilha das Lanternas", zone="C", kind="path", x=700, z=700,
          pad=None, build=_c_trilha_lanternas,
-         desc="Trilha cercada de 780 m ligando a Ponte da Escarpa (A8) a Ponte Baixa (D5), "
-              "marcada por estandartes."),
+         desc="Trilha cercada de 780 m ligando a Ponte da Escarpa (A8) à Ponte Baixa (D5), marcada por estandartes."),
     dict(id="C6", name="Clareira dos Alvos Ocultos", zone="C", kind="range", x=640, z=180,
          pad=(60, 60), build=_c_clareira_alvos,
          desc="Clareira escondida com cinco alvos dispostos para tiro em movimento."),
     dict(id="C7", name="Pedras Roxas", zone="C", kind="cliff", x=150, z=850,
          pad=None, build=_c_pedras_roxas,
-         desc="Afloramento de rocha roxa no flanco da Escarpa, com rampa escalavel."),
+         desc="Afloramento de rocha roxa no flanco da Escarpa, com rampa escalável."),
 
     # --- Zone D -----------------------------------------------------------
     dict(id="D1", name="Arena de Arqueria", zone="D", kind="range", x=1520, z=360,
          pad=(110, 80), build=_d_arena,
-         desc="Campo principal de tiro: oito alvos a 46 m, arena cercada de 136 x 72 m "
-              "e bandeiras nos cantos."),
+         desc="Campo principal de tiro: oito alvos a 46 m, arena cercada de 136 × 72 m e bandeiras nos cantos."),
     dict(id="D2", name="Plataforma de Comando", zone="D", kind="platform", x=1450, z=540,
          pad=(40, 40), build=_d_plataforma_comando,
-         desc="Deque coberto a 12 m sobre a arena, telhado azul, de onde o instrutor "
-              "acompanha as raias."),
+         desc="Deque coberto a 12 m sobre a arena, telhado azul, de onde o instrutor acompanha as raias."),
     dict(id="D3", name="Vila das Tendas Azuis", zone="D", kind="camp", x=1700, z=280,
          pad=(120, 90), build=_d_vila_tendas,
-         desc="Maior assentamento do mapa: 15 tendas em dois circulos, cercado longo "
-              "e torre de vigia sudeste."),
+         desc="Maior assentamento do mapa: 15 tendas em dois círculos, cercado longo e torre de vigia a sudeste."),
     dict(id="D4", name="Pedreira Roxa", zone="D", kind="cliff", x=1840, z=640,
          pad=None, build=_d_pedreira,
-         desc="Cratera de extracao de 330 m com paredes de ~34 m, blocos roxos "
-              "espalhados e rampa de saida a noroeste."),
+         desc="Cratera de extração de 330 m com paredes de 34 m, blocos roxos espalhados e rampa de saída a noroeste."),
     dict(id="D5", name="Ponte Baixa das Pedras", zone="D", kind="bridge", x=1010, z=430,
          pad=None, build=_d_ponte_baixa,
-         desc="Travessia sul do Rio Prateado com vau de pedras ao lado; liga a "
-              "Mata Antiga (C) aos Campos de Treino (D)."),
+         desc="Travessia sul do Rio Prateado com vau de pedras ao lado; liga a Mata Antiga (C) aos Campos de Treino (D)."),
     dict(id="D6", name="Ponte do Afluente", zone="D", kind="bridge", x=1560, z=1060,
          pad=None, build=_d_ponte_afluente,
-         desc="Travessia da Ribeira do Falcao; liga os Campos de Treino (D) ao "
-              "Planalto das Torres (B)."),
+         desc="Travessia da Ribeira do Falcão; liga os Campos de Treino (D) ao Planalto das Torres (B)."),
     dict(id="D7", name="Campo das Bandeiras", zone="D", kind="ruin", x=1250, z=250,
          pad=(60, 60), build=_d_campo_bandeiras,
-         desc="Anel de doze estandartes em campo aberto, usado como ponto de "
-              "reagrupamento e captura."),
+         desc="Anel de doze estandartes em campo aberto, usado como ponto de reagrupamento e captura."),
 
     # --- Centre -----------------------------------------------------------
-    dict(id="H1", name="Cruz da Confluencia", zone="H", kind="hub", x=1000, z=1000,
+    dict(id="H1", name="Cruz da Confluência", zone="H", kind="hub", x=1000, z=1000,
          pad=(90, 90), build=_h_confluencia,
-         desc="Coracao do mapa, onde os tres cursos d'agua se encontram: deque central "
-              "de 30 x 30 m a 24 m de altura, quatro torres nos cantos e quatro pontes "
-              "de corda irradiando para as quatro zonas."),
+         desc="Coração do mapa, onde os três cursos d'água se encontram: deque central de 30 × 30 m a 24 m de altura, quatro torres nos cantos e quatro pontes de corda irradiando para as quatro zonas."),
 ]

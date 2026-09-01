@@ -29,6 +29,11 @@ def load_field():
     return HeightField([HEIGHT_MIN + v / 65535.0 * span for v in q])
 
 
+def clipping(field):
+    """Texels pinned to the encoding ceiling; any at all means lost relief."""
+    return sum(1 for h in field.grid if h >= HEIGHT_MAX - 1e-6)
+
+
 def main():
     field = load_field()
     world = json.load(open(os.path.join(ROOT, "data", "forest_map_2k.json")))
@@ -49,6 +54,11 @@ def main():
     for lm in world["landmarks"]:
         if not (0 <= lm["x"] <= WORLD_SIZE and 0 <= lm["z"] <= WORLD_SIZE):
             errors.append("landmark %s is outside the map" % lm["id"])
+
+    clipped = clipping(field)
+    if clipped:
+        errors.append("%d heightmap texels are pinned to the %g m ceiling; raise "
+                      "HEIGHT_MAX so the peaks are not flattened" % (clipped, HEIGHT_MAX))
 
     sunk = [s for s in world["structures"]
             if s["model"] not in BURIED_BY_DESIGN
@@ -90,6 +100,7 @@ def main():
 
     counts = world["counts"]
     total = counts["structure_instances"] + counts["scatter_instances"]
+    print("peak height     : %.1f m" % max(field.grid))
     print("zones           : %d" % len(world["zones"]))
     print("landmarks       : %d" % counts["landmarks"])
     print("structures      : %d" % counts["structure_instances"])
