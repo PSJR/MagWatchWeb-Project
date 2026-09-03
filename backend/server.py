@@ -252,6 +252,7 @@ logger = logging.getLogger(__name__)
 # Mounted under /api/sf; see backend/sparkfun/ and design/ for the spec.
 # ---------------------------------------------------------------------------
 from sparkfun.routes import router as sparkfun_router, bind as sparkfun_bind, ensure_indexes
+from sparkfun.indexer import start_indexer, stop_indexer
 
 sparkfun_bind(db)
 api_router.include_router(sparkfun_router)
@@ -267,6 +268,17 @@ async def startup_sparkfun():
         logger.info("spark.fun indexes ready")
     except Exception as exc:  # a slow/unavailable Mongo must not block boot
         logger.warning("spark.fun index setup deferred: %s", exc)
+    try:
+        await start_indexer(db)
+    except Exception as exc:
+        # The app still serves reads without the indexer; it just stops
+        # learning about new on-chain activity, which /api/sf/chain reports.
+        logger.warning("spark.fun chain indexer not started: %s", exc)
+
+
+@app.on_event("shutdown")
+async def shutdown_sparkfun():
+    await stop_indexer()
 
 app.add_middleware(
     CORSMiddleware,

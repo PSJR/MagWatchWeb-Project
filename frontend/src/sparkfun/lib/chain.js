@@ -1,115 +1,92 @@
 /**
- * Robinhood Chain — the only network spark.fun speaks to.
+ * Robinhood Chain configuration and viem clients.
  *
- * Wallet access is plain EIP-1193 against the injected provider. That is a
- * deliberate choice over RainbowKit/wagmi for now: this app builds on
- * react-scripts 5, where the wagmi dependency tree fights the React 19 peer
- * graph and the webpack 4-era polyfill shims. The surface below is the same
- * shape a connector would expose, so swapping one in later is a local change.
+ * Every address and endpoint here was verified against the chain itself:
+ *   eth_chainId on the mainnet RPC returns 0x1237 (4663)
+ *   positionManager.factory() returns the Uniswap V3 factory below
+ *   positionManager.WETH9()   returns the WETH below
  */
+import { createPublicClient, createWalletClient, custom, defineChain, http } from 'viem';
 
-export const CHAIN = {
-  id: 4663,
-  hexId: '0x1237', // 4663
-  name: 'Robinhood Chain',
-  shortName: 'Robinhood Chain',
+const env = (key, fallback = '') => (process.env[key] || fallback).trim();
+
+export const CHAIN_ID = Number(env('REACT_APP_CHAIN_ID', '4663'));
+const IS_TESTNET = CHAIN_ID === 46630;
+
+export const CHAIN = defineChain({
+  id: CHAIN_ID,
+  name: IS_TESTNET ? 'Robinhood Chain Testnet' : 'Robinhood Chain',
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: ['https://rpc.robinhoodchain.com'],
-  blockExplorerUrls: ['https://explorer.robinhoodchain.com'],
-  blockTimeMs: 100,
-  stack: 'Arbitrum Orbit',
+  rpcUrls: {
+    default: {
+      http: [env(
+        'REACT_APP_RPC_URL',
+        IS_TESTNET
+          ? 'https://rpc.testnet.chain.robinhood.com'
+          : 'https://rpc.mainnet.chain.robinhood.com',
+      )],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Blockscout',
+      url: env('REACT_APP_EXPLORER_URL', 'https://robinhoodchain.blockscout.com'),
+    },
+  },
+});
+
+/** Arbitrum Orbit, ~100ms blocks — the number the whole UI is paced around. */
+export const BLOCK_TIME_MS = 100;
+export const CHAIN_STACK = 'Arbitrum Orbit';
+
+export const CONTRACTS = {
+  factory: env('REACT_APP_SPARK_FACTORY'),
+  uniswapV3Factory: '0x1f7d7550B1b028f7571E69A784071F0205FD2EfA',
+  positionManager: '0x73991a25c818bf1f1128deaab1492d45638de0d3',
+  weth: '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73',
+  usdc: env('REACT_APP_USDC_ADDRESS') || null,
 };
 
-export const UNISWAP_V3 = {
-  name: 'Uniswap V3',
-  poolUrl: (pool) => `${CHAIN.blockExplorerUrls[0]}/address/${pool}`,
-  tradeUrl: (token) => `https://app.uniswap.org/swap?chain=${CHAIN.id}&outputCurrency=${token}`,
-};
+export const POOL_FEE = 10_000; // 1%, matching SparkCurve.POOL_FEE
+
+/** True once a factory address is configured; the UI degrades honestly without it. */
+export const isDeployed = () => Boolean(CONTRACTS.factory);
+
+export const publicClient = createPublicClient({
+  chain: CHAIN,
+  transport: http(CHAIN.rpcUrls.default.http[0], { batch: true }),
+});
+
+export function walletClientFrom(provider, account) {
+  return createWalletClient({ account, chain: CHAIN, transport: custom(provider) });
+}
 
 export const explorer = {
-  tx: (hash) => `${CHAIN.blockExplorerUrls[0]}/tx/${hash}`,
-  address: (addr) => `${CHAIN.blockExplorerUrls[0]}/address/${addr}`,
+  tx: (hash) => `${CHAIN.blockExplorers.default.url}/tx/${hash}`,
+  address: (addr) => `${CHAIN.blockExplorers.default.url}/address/${addr}`,
+  token: (addr) => `${CHAIN.blockExplorers.default.url}/token/${addr}`,
 };
 
-export function getProvider() {
-  if (typeof window === 'undefined') return null;
-  return window.ethereum || null;
-}
+export const uniswapTradeUrl = (token) =>
+  `https://app.uniswap.org/swap?chain=${CHAIN_ID}&outputCurrency=${token}`;
 
-export function hasWallet() {
-  return Boolean(getProvider());
-}
+/** Turns a contract revert into something a person can act on. */
+export function humanizeChainError(err) {
+  const raw = err?.shortMessage || err?.details || err?.message || '';
+  const name = err?.cause?.data?.errorName || err?.data?.errorName || '';
 
-/** Ask the wallet for accounts. Throws a human-readable message on refusal. */
-export async function requestAccounts() {
-  const p = getProvider();
-  if (!p) throw new Error('Nenhuma carteira encontrada neste navegador.');
-  try {
-    const accounts = await p.request({ method: 'eth_requestAccounts' });
-    return accounts || [];
-  } catch (err) {
-    if (err && err.code === 4001) throw new Error('Você recusou a conexão.');
-    throw new Error(err?.message || 'Não consegui falar com a carteira.');
+  if (/User rejected|denied transaction|4001/i.test(raw)) return 'Você cancelou na carteira.';
+  if (name === 'SlippageExceeded' || /SlippageExceeded/.test(raw)) {
+    return 'O preço mexeu mais que o combinado. Tentar com margem maior?';
   }
-}
-
-export async function currentAccounts() {
-  const p = getProvider();
-  if (!p) return [];
-  try {
-    return (await p.request({ method: 'eth_accounts' })) || [];
-  } catch {
-    return [];
+  if (name === 'WalletCapExceeded' || /WalletCapExceeded/.test(raw)) {
+    return 'Isso passa do limite por carteira deste token. Tokens em Fogo Selvagem não têm limite.';
   }
-}
-
-export async function currentChainId() {
-  const p = getProvider();
-  if (!p) return null;
-  try {
-    const hex = await p.request({ method: 'eth_chainId' });
-    return parseInt(hex, 16);
-  } catch {
-    return null;
+  if (name === 'AlreadyGraduated' || /AlreadyGraduated/.test(raw)) {
+    return 'Este token já graduou — negocie na pool do Uniswap V3.';
   }
-}
-
-/**
- * Switch to Robinhood Chain, adding it first if the wallet has never seen it.
- * 4902 is the "unrecognised chain" code every injected wallet returns.
- */
-export async function switchToChain() {
-  const p = getProvider();
-  if (!p) throw new Error('Nenhuma carteira encontrada neste navegador.');
-  try {
-    await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CHAIN.hexId }] });
-    return true;
-  } catch (err) {
-    if (err && (err.code === 4902 || err.code === -32603)) {
-      await p.request({
-        method: 'wallet_addEthereumChain',
-        params: [{
-          chainId: CHAIN.hexId,
-          chainName: CHAIN.name,
-          nativeCurrency: CHAIN.nativeCurrency,
-          rpcUrls: CHAIN.rpcUrls,
-          blockExplorerUrls: CHAIN.blockExplorerUrls,
-        }],
-      });
-      return true;
-    }
-    if (err && err.code === 4001) throw new Error('Você recusou a troca de rede.');
-    throw new Error(err?.message || 'Não consegui trocar de rede.');
-  }
-}
-
-export async function getBalance(address) {
-  const p = getProvider();
-  if (!p || !address) return 0;
-  try {
-    const hex = await p.request({ method: 'eth_getBalance', params: [address, 'latest'] });
-    return parseInt(hex, 16) / 1e18;
-  } catch {
-    return 0;
-  }
+  if (name === 'ZeroAmount' || /ZeroAmount/.test(raw)) return 'Esse valor é pequeno demais.';
+  if (/insufficient funds/i.test(raw)) return 'Faltou um tiquinho de ETH pro gas. Quer adicionar?';
+  if (/nonce|replacement/i.test(raw)) return 'Tem outra transação sua na fila. Espere ela confirmar.';
+  return raw || 'Não deu certo dessa vez. Tente de novo.';
 }

@@ -94,7 +94,10 @@ export const api = {
   // ---- discovery ----
   tokens: (params, signal) => request(`/sf/tokens${qs(params)}`, { auth: false, signal }),
   token: (address, signal) => request(`/sf/tokens/${address}`, { auth: false, signal }),
-  createToken: (payload) => request('/sf/tokens', { method: 'POST', body: payload }),
+  // Metadata lives off-chain; the contract only carries its URI.
+  pinMetadata: (payload) => request('/sf/metadata', { method: 'POST', body: payload }),
+  // Tells the indexer about a launch it may not have polled yet.
+  indexToken: (payload) => request('/sf/index/token', { method: 'POST', body: payload }),
   tickerAvailable: (ticker) => request(`/sf/tokens/ticker/${encodeURIComponent(ticker)}`, { auth: false }),
 
   // ---- trading ----

@@ -1,0 +1,146 @@
+{
+  "generated_from": "contracts/SparkCurve.sol",
+  "note": "Regenerate with: cd contracts && npx hardhat run scripts/dump-curve-fixtures.js",
+  "cases": [
+    {
+      "mayhem": false,
+      "side": "buy",
+      "base_sold": "0",
+      "quote_raised": "0",
+      "amount": "1000000000000000",
+      "expected": {
+        "base_out": "258034392215791805878195",
+        "creator_fee": "10000000000000",
+        "protocol_fee": "5000000000000",
+        "refund": "0"
+      }
+    },
+    {
+      "mayhem": false,
+      "side": "buy",
+      "base_sold": "0",
+      "quote_raised": "0",
+      "amount": "50000000000000000",
+      "expected": {
+        "base_out": "12751462870241901429691741",
+        "creator_fee": "500000000000000",
+        "protocol_fee": "250000000000000",
+        "refund": "0"
+      }
+    },
+    {
+      "mayhem": false,
+      "side": "buy",
+      "base_sold": "210598626104023552502453382",
+      "quote_raised": "1000000000000000000",
+      "amount": "500000000000000000",
+      "expected": {
+        "base_out": "76014796714768393806271446",
+        "creator_fee": "5000000000000000",
+        "protocol_fee": "2500000000000000",
+        "refund": "0"
+      }
+    },
+    {
+      "mayhem": false,
+      "side": "buy",
+      "base_sold": "530203829524397776405188385",
+      "quote_raised": "4000000000000000000",
+      "amount": "1000000000000000000",
+      "expected": {
+        "base_out": "58882624220095615665296193",
+        "creator_fee": "10000000000000000",
+        "protocol_fee": "5000000000000000",
+        "refund": "0"
+      }
+    },
+    {
+      "mayhem": false,
+      "side": "buy",
+      "base_sold": "709714758164530797850351378",
+      "quote_raised": "8000000000000000000",
+      "amount": "3000000000000000000",
+      "expected": {
+        "base_out": "71329427881980830056625360",
+        "creator_fee": "30000000000000000",
+        "protocol_fee": "15000000000000000",
+        "refund": "0"
+      }
+    },
+    {
+      "mayhem": false,
+      "side": "buy",
+      "base_sold": "781914541238820801589930432",
+      "quote_raised": "11000000000000000000",
+      "amount": "100000000000000000000",
+      "expected": {
+        "base_out": "18085458761179198410069568",
+        "creator_fee": "10152284263959390",
+        "protocol_fee": "5076142131979695",
+        "refund": "98984771573604060912"
+      }
+    },
+    {
+      "mayhem": true,
+      "side": "buy",
+      "base_sold": "0",
+      "quote_raised": "0",
+      "amount": "50000000000000000",
+      "expected": {
+        "base_out": "25580121439930605753939569",
+        "creator_fee": "1250000000000000",
+        "protocol_fee": "250000000000000",
+        "refund": "0"
+      }
+    },
+    {
+      "mayhem": true,
+      "side": "buy",
+      "base_sold": "584553757410671366768146124",
+      "quote_raised": "3000000000000000000",
+      "amount": "2000000000000000000",
+      "expected": {
+        "base_out": "95962347260249601400112754",
+        "creator_fee": "50000000000000000",
+        "protocol_fee": "10000000000000000",
+        "refund": "0"
+      }
+    },
+    {
+      "mayhem": false,
+      "side": "sell",
+      "base_sold": "352091878589007383100902373",
+      "quote_raised": "2000000000000000000",
+      "amount": "1000000000000000000000000",
+      "expected": {
+        "quote_out": "8316259122096895",
+        "creator_fee": "84429026620273",
+        "protocol_fee": "42214513310136"
+      }
+    },
+    {
+      "mayhem": false,
+      "side": "sell",
+      "base_sold": "637741456166419019316493308",
+      "quote_raised": "6000000000000000000",
+      "amount": "50000000000000000000000000",
+      "expected": {
+        "quote_out": "1024564649747840493",
+        "creator_fee": "10401671571044065",
+        "protocol_fee": "5200835785522032"
+      }
+    },
+    {
+      "mayhem": true,
+      "side": "sell",
+      "base_sold": "682595516970400029936758592",
+      "quote_raised": "5000000000000000000",
+      "amount": "10000000000000000000000000",
+      "expected": {
+        "quote_out": "270628781637758673",
+        "creator_fee": "6974968598911305",
+        "protocol_fee": "1394993719782261"
+      }
+    }
+  ]
+}

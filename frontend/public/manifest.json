@@ -1,0 +1,14 @@
+{
+  "short_name": "spark.fun",
+  "name": "spark.fun — token launchpad da Robinhood Chain",
+  "description": "Acenda um token em 20 segundos, por só o gas da Robinhood Chain.",
+  "icons": [
+    { "src": "favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any" }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFBF4",
+  "theme_color": "#FF7A2F",
+  "lang": "pt-BR"
+}

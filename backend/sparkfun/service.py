@@ -6,7 +6,6 @@ database. Persistence lives in routes.py.
 
 from __future__ import annotations
 
-import hashlib
 import math
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -24,23 +23,6 @@ def utcnow() -> datetime:
 
 def new_id() -> str:
     return secrets.token_hex(12)
-
-
-def token_address(creator_id: str, ticker: str, created_at: datetime) -> str:
-    """Deterministic 20-byte identifier for a token.
-
-    NOTE: this is the application-layer id, not a deployed contract address.
-    On-chain settlement (the launchpad contracts and the indexer that feeds
-    state back in) is a separate workstream; when it lands, this becomes the
-    address the factory emits and the field keeps its name.
-    """
-    seed = f"{creator_id}:{ticker}:{created_at.isoformat()}".encode()
-    return "0x" + hashlib.sha256(seed).hexdigest()[:40]
-
-
-def fake_tx_hash(*parts: Any) -> str:
-    seed = ":".join(str(p) for p in parts).encode() + secrets.token_bytes(8)
-    return "0x" + hashlib.sha256(seed).hexdigest()
 
 
 def handle_from(address: Optional[str], email: Optional[str], taken: set[str]) -> str:
@@ -96,13 +78,26 @@ def params_for(token: dict[str, Any]) -> C.CurveParams:
     return C.curve_params(pair=token.get("pair", "ETH"), mayhem=bool(token.get("mayhem")))
 
 
+def _int(value: Any, default: int = 0) -> int:
+    """Curve amounts are stored as decimal strings so uint256 survives Mongo."""
+    if value is None:
+        return default
+    if isinstance(value, int):
+        return value
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return default
+
+
 def project_token(token: dict[str, Any], *, creator: Optional[dict] = None,
                   stats: Optional[dict] = None) -> dict[str, Any]:
     """Turn a stored token document into the shape the UI renders."""
     p = params_for(token)
-    sold = float(token.get("base_sold", 0.0))
-    r = C.reserves(p, sold)
+    sold = _int(token.get("base_sold"))
+    raised = _int(token.get("quote_raised"))
     stats = stats or {}
+    unit = 10 ** p.decimals
 
     return {
         "address": token["address"],
@@ -122,12 +117,15 @@ def project_token(token: dict[str, Any], *, creator: Optional[dict] = None,
         "created_at": token.get("created_at"),
         "graduated_at": token.get("graduated_at"),
         "last_trade_at": token.get("last_trade_at"),
-        "base_sold": sold,
-        "price": C.spot_price(p, sold),
-        "market_cap": C.market_cap(p, sold),
-        "progress": C.progress(p, sold),
-        "raised": r["raised"],
-        "to_graduate": C.quote_to_graduate(p, sold),
+        "curve": token.get("curve"),
+        "base_sold": sold / 10**18,
+        "base_sold_raw": str(sold),
+        "quote_raised_raw": str(raised),
+        "price": C.spot_price(p, sold, raised),
+        "market_cap": C.market_cap(p, sold, raised),
+        "progress": C.progress(p, raised),
+        "raised": raised / unit,
+        "to_graduate": C.quote_to_graduate(p, raised) / unit,
         "volume_24h": stats.get("volume_24h", token.get("volume_24h", 0.0)),
         "change_24h": stats.get("change_24h"),
         "holders": stats.get("holders", token.get("holders", 0)),
@@ -152,7 +150,7 @@ def is_dead(token: dict[str, Any], now: Optional[datetime] = None) -> bool:
     if last.tzinfo is None:
         last = last.replace(tzinfo=timezone.utc)
     quiet = now - last > timedelta(days=7)
-    barely_lit = C.progress(params_for(token), float(token.get("base_sold", 0))) < 0.05
+    barely_lit = C.progress(params_for(token), _int(token.get("quote_raised"))) < 0.05
     return quiet and barely_lit
 
 

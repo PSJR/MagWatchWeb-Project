@@ -5,7 +5,7 @@ import { Button, Field, cx } from './ui';
 import { Ember, Pip, SparkLogo } from './mascots';
 import { useWallet } from '../hooks/useWallet';
 import { truncAddress } from '../lib/format';
-import { CHAIN } from '../lib/chain';
+import { CHAIN, CHAIN_ID } from '../lib/chain';
 
 const NAV = [
   { to: '/', label: 'Início', icon: '⌂', end: true },
@@ -40,7 +40,7 @@ export default function AppShell({ children }) {
 }
 
 function Header({ onConnect }) {
-  const { user, address, disconnect } = useWallet();
+  const { user, address, disconnect, connector } = useWallet();
   const [small, setSmall] = useState(false);
 
   useEffect(() => {
@@ -66,7 +66,7 @@ function Header({ onConnect }) {
           {user ? (
             <button
               onClick={disconnect}
-              title="Sair"
+              title={`Sair · conectado via ${connector === 'injected' ? 'carteira do navegador' : 'WalletConnect'}`}
               className="flex items-center gap-2 rounded-pill bg-surface shadow-hairline pl-1 pr-3 py-1
                          hover:shadow-sm transition-shadow duration-fast"
             >
@@ -176,8 +176,24 @@ function BottomNav() {
 }
 
 function WalletModal({ onClose }) {
-  const { connect, connectEmail, connecting, error, hasWallet } = useWallet();
+  const {
+    connect, connectEmail, connecting, error,
+    hasInjected, walletConnectConfigured,
+  } = useWallet();
   const [email, setEmail] = useState('');
+  const [pending, setPending] = useState(null);
+
+  const run = (kind) => async () => {
+    setPending(kind);
+    try {
+      await connect(kind);
+      onClose();
+    } catch {
+      /* the message is rendered from the hook's error state */
+    } finally {
+      setPending(null);
+    }
+  };
 
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose();
@@ -202,18 +218,40 @@ function WalletModal({ onClose }) {
           <Ember size={44} mood="happy" className="animate-bob" />
           <div>
             <h2 className="disp text-heading-lg">Entrar na casa</h2>
-            <p className="text-caption text-ink3">Robinhood Chain · {CHAIN.id}</p>
+            <p className="text-caption text-ink3">{CHAIN.name} · {CHAIN_ID}</p>
           </div>
         </div>
 
         <div className="mt-5 space-y-2">
-          <Button full size="xl" loading={connecting} onClick={() => connect().then(onClose).catch(() => {})}>
-            {hasWallet ? 'Conectar carteira' : 'Instalar uma carteira'}
+          <Button
+            full size="xl"
+            loading={pending === 'walletconnect'}
+            disabled={!walletConnectConfigured || connecting}
+            onClick={run('walletconnect')}
+          >
+            Conectar com WalletConnect
           </Button>
-          {!hasWallet && (
-            <p className="text-caption text-ink3 text-center">
-              Não achei carteira neste navegador. Dá para entrar por e-mail abaixo.
+          <p className="text-caption text-ink3 text-center">
+            Funciona com qualquer carteira: QR no desktop, link direto no celular.
+          </p>
+
+          {!walletConnectConfigured && (
+            <p className="text-caption text-ember-800 bg-ember-100 rounded-md px-3 py-2">
+              WalletConnect não está configurado nesta build. Defina
+              <code className="num mx-1">REACT_APP_WALLETCONNECT_PROJECT_ID</code>
+              (grátis em dashboard.reown.com).
             </p>
+          )}
+
+          {hasInjected && (
+            <Button
+              full size="lg" variant="secondary"
+              loading={pending === 'injected'}
+              disabled={connecting}
+              onClick={run('injected')}
+            >
+              Usar a carteira do navegador
+            </Button>
           )}
         </div>
 
@@ -241,8 +279,10 @@ function WalletModal({ onClose }) {
         {error && <p className="text-caption text-coral-800 mt-3 text-center">{error}</p>}
 
         <p className="text-caption text-ink3 mt-5 leading-relaxed">
-          Tokens criados aqui não têm garantia nem promessa de valor. A maioria vai a zero.
-          A gente deixa isso divertido — mas o risco é de verdade.
+          Você mantém a custódia: a assinatura serve só para provar quem você é e
+          não autoriza nenhuma transação. Tokens criados aqui não têm garantia nem
+          promessa de valor. A maioria vai a zero. A gente deixa isso divertido —
+          mas o risco é de verdade.
         </p>
       </div>
     </div>

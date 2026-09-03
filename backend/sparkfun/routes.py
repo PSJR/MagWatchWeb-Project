@@ -13,11 +13,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSock
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
+from . import chain as CH
 from . import curve as C
 from . import service as S
+from .indexer import get_indexer
 from .models import (
     CommentIn, CommentOut, CreatorStats, GuestIn, HolderOut, NonceOut, PlatformStats,
-    PositionOut, QuoteIn, Session, TokenCreate, TokenOut, TradeIn, TradeOut,
+    PositionOut, QuoteIn, Session, TokenOut, TradeOut,
     UserPatch, UserProfile, UserPublic, VerifyIn, utcnow,
 )
 
@@ -272,9 +274,9 @@ async def patch_me(patch: UserPatch, user: dict = Depends(current_user)) -> Any:
 SORTS = {
     "movers": [("volume_24h", -1)],
     "new": [("created_at", -1)],
-    "mcap": [("base_sold", -1)],
+    "mcap": [("quote_raised_f", -1)],
     "last_trade": [("last_trade_at", -1)],
-    "almost": [("base_sold", -1)],
+    "almost": [("quote_raised_f", -1)],
 }
 
 
@@ -287,8 +289,8 @@ async def _token_stats(addresses: list[str]) -> dict[str, dict]:
 
     cursor = db()[TRADES].aggregate([
         {"$match": {"token_address": {"$in": addresses}, "ts": {"$gte": since}}},
-        {"$group": {"_id": "$token_address", "vol": {"$sum": "$quote"}, "n": {"$sum": 1},
-                    "first": {"$first": "$price"}, "last": {"$last": "$price"}}},
+        {"$group": {"_id": "$token_address", "vol": {"$sum": "$quote_f"}, "n": {"$sum": 1},
+                    "first": {"$first": "$price_f"}, "last": {"$last": "$price_f"}}},
     ])
     async for row in cursor:
         out[row["_id"]].update(volume_24h=row["vol"], trades=row["n"])
@@ -296,7 +298,7 @@ async def _token_stats(addresses: list[str]) -> dict[str, dict]:
             out[row["_id"]]["change_24h"] = (row["last"] - row["first"]) / row["first"]
 
     holders = db()[POSITIONS].aggregate([
-        {"$match": {"token_address": {"$in": addresses}, "balance": {"$gt": 0}}},
+        {"$match": {"token_address": {"$in": addresses}, "balance_raw": {"$gt": 0}}},
         {"$group": {"_id": "$token_address", "n": {"$sum": 1}}},
     ])
     async for row in holders:
@@ -334,7 +336,16 @@ async def list_tokens(
     # "Quase lá" is the signature filter: tokens on the edge of graduating.
     if sort == "almost":
         query["status"] = "live"
-        query["base_sold"] = {"$gte": C.CURVE_SUPPLY * 0.85}
+        # 85% of the ETH graduation target; the USDC target differs, so this
+        # filter is expressed per pair rather than as one absolute number.
+        query["$expr"] = {
+            "$gte": [
+                "$quote_raised_f",
+                {"$multiply": [
+                    {"$cond": [{"$eq": ["$pair", "USDC"]}, 36000.0, 12.0]}, 0.85,
+                ]},
+            ]
+        }
 
     docs = await db()[TOKENS].find(query, {"_id": 0}).sort(
         SORTS.get(sort, SORTS["movers"])
@@ -364,271 +375,86 @@ async def get_token(address: str) -> Any:
     return S.project_token(doc, creator=creator, stats=stats.get(address, {}))
 
 
-@router.post("/tokens", response_model=TokenOut, status_code=201)
-async def create_token(payload: TokenCreate, user: dict = Depends(current_user)) -> Any:
-    existing = await db()[TOKENS].find_one({"ticker": payload.ticker}, {"_id": 0, "address": 1})
-    if existing:
-        raise HTTPException(409, f"${payload.ticker} já está aceso.")
+@router.post("/metadata", status_code=201)
+async def pin_metadata(payload: dict, user: dict = Depends(current_user)) -> Any:
+    """Stores off-chain token metadata and returns the URI the contract carries.
 
-    created_at = utcnow()
-    address = S.token_address(user["id"], payload.ticker, created_at)
-    doc = {
-        "address": address,
-        "ticker": payload.ticker,
-        "name": payload.name,
-        "description": payload.description or "",
-        "image_url": payload.image_url,
-        "banner_url": payload.banner_url,
-        "media_type": payload.media_type,
-        "links": payload.links.model_dump(exclude_none=True),
-        "pair": payload.pair,
-        "mayhem": payload.mayhem,
-        "status": "live",
-        "creator_id": user["id"],
-        "creator_handle": user["handle"],
-        "created_at": created_at,
-        "last_trade_at": None,
-        "base_sold": 0.0,
-        "volume_24h": 0.0,
-        "creator_fees": 0.0,
-        "pool_address": None,
-    }
-    await db()[TOKENS].insert_one(dict(doc))
-    if not user.get("is_creator"):
-        await db()[USERS].update_one({"id": user["id"]}, {"$set": {"is_creator": True}})
-
-    if payload.dev_buy > 0:
-        await _execute_trade(doc, user, side="buy", amount=payload.dev_buy, slippage=0.5)
-        doc = await db()[TOKENS].find_one({"address": address}, {"_id": 0})
-
-    projected = S.project_token(doc, creator=user)
-    await broadcast({"type": "token.created", "token": projected}, address)
-    return projected
-
-
-# --------------------------------------------------------------------------
-# trading
-# --------------------------------------------------------------------------
-
-@router.post("/tokens/{address}/quote")
-async def quote_trade(address: str, payload: QuoteIn) -> Any:
-    doc = await db()[TOKENS].find_one({"address": address}, {"_id": 0})
-    if not doc:
-        raise HTTPException(404, "Não achei esse token por aqui.")
-    p = S.params_for(doc)
-    sold = float(doc.get("base_sold", 0))
-    q = C.quote_buy(p, sold, payload.amount) if payload.side == "buy" else C.quote_sell(p, sold, payload.amount)
-    q["pair"] = doc.get("pair", "ETH")
-    q["progress_after"] = C.progress(p, q["next_sold"])
-    return q
-
-
-async def _execute_trade(token: dict, user: dict, *, side: str, amount: float,
-                         slippage: float, min_out: Optional[float] = None) -> dict:
-    """Settle a trade against the curve.
-
-    Concurrency: the curve state is the single mutable field that matters, so
-    the write is conditional on base_sold being exactly what we quoted against.
-    A racing trade changes it, the update matches nothing, and we retry with
-    fresh state rather than settling at a stale price.
+    The chain holds only this URI; description, image and links live here so
+    they can be corrected without redeploying anything.
     """
-    address = token["address"]
-
-    for _ in range(5):
-        doc = await db()[TOKENS].find_one({"address": address}, {"_id": 0})
-        if not doc:
-            raise HTTPException(404, "Não achei esse token por aqui.")
-        if doc["status"] == "graduated":
-            raise HTTPException(409, "Esse token já graduou — negocie na pool do Uniswap V3.")
-
-        p = S.params_for(doc)
-        sold = float(doc.get("base_sold", 0.0))
-
-        position = await db()[POSITIONS].find_one(
-            {"user_id": user["id"], "token_address": address}, {"_id": 0}
-        ) or {"balance": 0.0, "cost_basis": 0.0, "realized_pnl": 0.0}
-
-        if side == "buy":
-            q = C.quote_buy(p, sold, amount)
-            if q["base_out"] <= 0:
-                raise HTTPException(400, "Esse valor é pequeno demais para render tokens.")
-            if p.wallet_cap is not None and position["balance"] + q["base_out"] > p.wallet_cap:
-                raise HTTPException(
-                    400,
-                    "Isso passa do limite por carteira desse token. "
-                    "Tokens em Fogo Selvagem não têm limite.",
-                )
-            if min_out is not None and q["base_out"] < min_out:
-                raise HTTPException(409, "O preço mexeu mais que o combinado. Tente com margem maior.")
-            delta_balance = q["base_out"]
-            delta_cost = q["quote_in"]
-            realized = 0.0
-            quote_moved = q["quote_in"]
-        else:
-            if position["balance"] <= 0:
-                raise HTTPException(400, "Você não tem esse token para vender.")
-            sell_amount = min(amount, position["balance"])
-            q = C.quote_sell(p, sold, sell_amount)
-            if min_out is not None and q["quote_out"] < min_out:
-                raise HTTPException(409, "O preço mexeu mais que o combinado. Tente com margem maior.")
-            share = sell_amount / position["balance"] if position["balance"] else 0.0
-            delta_cost = -position["cost_basis"] * share
-            realized = q["quote_out"] + delta_cost  # delta_cost is negative here
-            delta_balance = -sell_amount
-            quote_moved = q["quote_out"]
-
-        next_sold = q["next_sold"]
-        graduates = bool(q.get("graduates"))
-
-        token_updates: dict[str, Any] = {
-            "base_sold": next_sold,
-            "last_trade_at": utcnow(),
-        }
-        if graduates:
-            token_updates["status"] = "graduated"
-            token_updates["graduated_at"] = utcnow()
-            token_updates["pool_address"] = S.token_address(
-                doc["creator_id"], f"{doc['ticker']}-POOL", doc["created_at"]
-            )
-
-        result = await db()[TOKENS].update_one(
-            {"address": address, "base_sold": sold, "status": doc["status"]},
-            {"$set": token_updates,
-             "$inc": {"creator_fees": q["creator_fee"], "volume_24h": quote_moved}},
-        )
-        if result.modified_count != 1:
-            continue  # someone traded between our read and write — requote
-
-        await db()[POSITIONS].update_one(
-            {"user_id": user["id"], "token_address": address},
-            {"$inc": {"balance": delta_balance, "cost_basis": delta_cost, "realized_pnl": realized},
-             "$setOnInsert": {"first_trade_at": utcnow(), "handle": user["handle"]}},
-            upsert=True,
-        )
-
-        trade = {
-            "id": S.new_id(),
-            "token_address": address,
-            "ticker": doc["ticker"],
-            "user_id": user["id"],
-            "handle": user["handle"],
-            "nickname": user.get("nickname"),
-            "side": side,
-            "base": q.get("base_out") or q.get("base_in") or 0.0,
-            "quote": quote_moved,
-            "price": q["avg_price"],
-            "creator_fee": q["creator_fee"],
-            "protocol_fee": q["protocol_fee"],
-            "tx_hash": S.fake_tx_hash(address, user["id"], side, amount),
-            "ts": utcnow(),
-            "graduated": graduates,
-        }
-        await db()[TRADES].insert_one(dict(trade))
-        trade.pop("_id", None)
-
-        fresh = await db()[TOKENS].find_one({"address": address}, {"_id": 0})
-        stats = await _token_stats([address])
-        projected = S.project_token(fresh, stats=stats.get(address, {}))
-        trade["token"] = projected
-
-        await broadcast({"type": "trade", "trade": trade, "token": projected}, address)
-        if graduates:
-            await broadcast(
-                {"type": "graduation", "token": projected,
-                 "plan": C.graduation_plan(S.params_for(fresh), fresh["base_sold"])},
-                address,
-            )
-        return trade
-
-    raise HTTPException(409, "A fogueira está muito movimentada. Tente de novo.")
+    doc = {
+        "id": S.new_id(),
+        "description": str(payload.get("description") or "")[:500],
+        "image_url": payload.get("image_url"),
+        "banner_url": payload.get("banner_url"),
+        "links": payload.get("links") or {},
+        "author_id": user["id"],
+        "created_at": utcnow(),
+    }
+    await db()["sf_metadata"].insert_one(dict(doc))
+    return {"uri": f"sparkfun:{doc['id']}", "id": doc["id"]}
 
 
-@router.post("/tokens/{address}/trade", response_model=TradeOut)
-async def trade(address: str, payload: TradeIn, user: dict = Depends(current_user)) -> Any:
-    doc = await db()[TOKENS].find_one({"address": address}, {"_id": 0})
-    if not doc:
-        raise HTTPException(404, "Não achei esse token por aqui.")
+@router.post("/index/token", status_code=202)
+async def index_token(payload: dict, user: dict = Depends(current_user)) -> Any:
+    """Nudges the indexer after a launch and attaches its metadata.
 
-    # Derive the slippage floor from a fresh quote so the caller does not have
-    # to compute min_out themselves.
-    min_out = payload.min_out
-    if min_out is None:
-        p = S.params_for(doc)
-        sold = float(doc.get("base_sold", 0.0))
-        preview = (C.quote_buy(p, sold, payload.amount) if payload.side == "buy"
-                   else C.quote_sell(p, sold, payload.amount))
-        expected = preview["base_out"] if payload.side == "buy" else preview["quote_out"]
-        min_out = expected * (1 - payload.slippage)
+    This only ever *adds* description and links to a token the chain already
+    created — it cannot invent a token. If the indexer has not seen the launch
+    yet, the metadata is parked and applied when it does.
+    """
+    token_address = (payload.get("token") or "").strip()
+    if not token_address.startswith("0x") or len(token_address) != 42:
+        raise HTTPException(400, "Endereço de token inválido.")
 
-    return await _execute_trade(
-        doc, user, side=payload.side, amount=payload.amount,
-        slippage=payload.slippage, min_out=min_out,
+    fields = {
+        "description": str(payload.get("description") or "")[:500],
+        "image_url": payload.get("image_url"),
+        "banner_url": payload.get("banner_url"),
+        "links": payload.get("links") or {},
+    }
+
+    indexer = get_indexer()
+    if indexer:
+        try:
+            await indexer.tick()
+        except Exception:
+            pass  # the periodic loop will catch up
+
+    existing = await db()[TOKENS].find_one({"address": token_address}, {"_id": 0, "creator_id": 1})
+    if existing:
+        if existing.get("creator_id") != user["id"]:
+            raise HTTPException(403, "Esse token não é seu.")
+        await db()[TOKENS].update_one({"address": token_address}, {"$set": fields})
+        return {"indexed": True, **fields}
+
+    await db()["sf_pending_metadata"].update_one(
+        {"address": token_address},
+        {"$set": {**fields, "address": token_address, "author_id": user["id"], "at": utcnow()}},
+        upsert=True,
     )
+    return {"indexed": False, "queued": True}
 
 
-@router.get("/tokens/{address}/trades", response_model=list[TradeOut])
-async def token_trades(address: str, limit: int = Query(40, ge=1, le=200),
-                       side: Optional[str] = None) -> Any:
-    query: dict[str, Any] = {"token_address": address}
-    if side in ("buy", "sell"):
-        query["side"] = side
-    return await db()[TRADES].find(query, {"_id": 0}).sort("ts", -1).limit(limit).to_list(limit)
-
-
-@router.get("/tokens/{address}/holders", response_model=list[HolderOut])
-async def token_holders(address: str, limit: int = Query(50, ge=1, le=200)) -> Any:
-    doc = await db()[TOKENS].find_one({"address": address}, {"_id": 0})
-    if not doc:
-        raise HTTPException(404, "Não achei esse token por aqui.")
-    rows = await db()[POSITIONS].find(
-        {"token_address": address, "balance": {"$gt": 0}}, {"_id": 0}
-    ).sort("balance", -1).limit(limit).to_list(limit)
-
-    total = float(doc.get("base_sold", 0.0)) or 1.0
-    created = doc["created_at"]
-    if isinstance(created, str):
-        created = datetime.fromisoformat(created)
-    if created.tzinfo is None:
-        created = created.replace(tzinfo=timezone.utc)
-
-    out = []
-    for r in rows:
-        user = await db()[USERS].find_one({"id": r["user_id"]}, {"_id": 0}) or {}
-        first = r.get("first_trade_at")
-        if isinstance(first, str):
-            first = datetime.fromisoformat(first)
-        if first and first.tzinfo is None:
-            first = first.replace(tzinfo=timezone.utc)
-        share = r["balance"] / total
-        out.append({
-            "handle": user.get("handle", "anon"),
-            "nickname": user.get("nickname"),
-            "address": user.get("address"),
-            "balance": r["balance"],
-            "share": share,
-            "is_creator": r["user_id"] == doc["creator_id"],
-            "early": bool(first and (first - created) <= timedelta(seconds=60)),
-            "whale": share >= 0.03,
-        })
-    return out
-
-
-@router.get("/tokens/{address}/candles")
-async def token_candles(address: str, minutes: int = Query(60, ge=5, le=1440)) -> Any:
-    """Price series for the chart, bucketed by minute."""
-    since = utcnow() - timedelta(minutes=minutes)
-    rows = await db()[TRADES].aggregate([
-        {"$match": {"token_address": address, "ts": {"$gte": since}}},
-        {"$group": {
-            "_id": {"$dateTrunc": {"date": "$ts", "unit": "minute"}},
-            "open": {"$first": "$price"}, "close": {"$last": "$price"},
-            "high": {"$max": "$price"}, "low": {"$min": "$price"},
-            "volume": {"$sum": "$quote"}, "trades": {"$sum": 1},
-        }},
-        {"$sort": {"_id": 1}},
-    ]).to_list(1500)
-    return [{"t": r["_id"], **{k: r[k] for k in ("open", "close", "high", "low", "volume", "trades")}}
-            for r in rows]
+@router.get("/chain")
+async def chain_status() -> Any:
+    """What the app is actually connected to, and whether the index is current."""
+    indexer = get_indexer()
+    head = None
+    if CH.configured():
+        try:
+            head = await indexer.rpc.block_number() if indexer else None
+        except Exception:
+            head = None
+    return {
+        "chain_id": CH.CHAIN_ID,
+        "rpc": CH.RPC_URL,
+        "factory": CH.FACTORY_ADDRESS or None,
+        "deployed": CH.configured(),
+        "indexer_running": bool(indexer and indexer.running),
+        "indexed_block": indexer.last_block if indexer else None,
+        "head_block": head,
+    }
 
 
 # --------------------------------------------------------------------------
@@ -706,7 +532,7 @@ async def toggle_follow(handle: str, user: dict = Depends(current_user)) -> Any:
 async def _positions_for(user_id: str, *, only_open: bool = True) -> list[dict]:
     query: dict[str, Any] = {"user_id": user_id}
     if only_open:
-        query["balance"] = {"$gt": 1e-9}
+        query["balance_raw"] = {"$gt": 0}
     rows = await db()[POSITIONS].find(query, {"_id": 0}).to_list(500)
     if not rows:
         return []
@@ -722,12 +548,13 @@ async def _positions_for(user_id: str, *, only_open: bool = True) -> list[dict]:
         if not token:
             continue
         projected = S.project_token(token, stats=stats.get(token["address"], {}))
-        value = r["balance"] * projected["price"]
+        balance = S._int(r.get("balance_raw")) / 10**18
+        value = balance * projected["price"]
         cost = r.get("cost_basis", 0.0)
         pnl = value - cost
         out.append({
             "token": projected,
-            "balance": r["balance"],
+            "balance": S._int(r.get("balance_raw")) / 10**18,
             "value": value,
             "cost_basis": cost,
             "pnl": pnl,
@@ -895,8 +722,8 @@ async def _creator_stats(user: dict, *, include_claimable: bool = False) -> dict
 
     volume_rows = await db()[TRADES].aggregate([
         {"$match": {"token_address": {"$in": addresses}}},
-        {"$group": {"_id": None, "volume": {"$sum": "$quote"},
-                    "fees": {"$sum": "$creator_fee"}}},
+        {"$group": {"_id": None, "volume": {"$sum": "$quote_f"},
+                    "fees": {"$sum": "$creator_fee_f"}}},
     ]).to_list(1)
     total_volume = volume_rows[0]["volume"] if volume_rows else 0.0
     fees_lifetime = volume_rows[0]["fees"] if volume_rows else 0.0
@@ -907,7 +734,7 @@ async def _creator_stats(user: dict, *, include_claimable: bool = False) -> dict
         {"$match": {"token_address": {"$in": addresses}, "ts": {"$gte": since_30d}}},
         {"$group": {
             "_id": {"$dateTrunc": {"date": "$ts", "unit": "day"}},
-            "fees": {"$sum": "$creator_fee"}, "volume": {"$sum": "$quote"},
+            "fees": {"$sum": "$creator_fee_f"}, "volume": {"$sum": "$quote_f"},
         }},
         {"$sort": {"_id": 1}},
     ]).to_list(60)
@@ -965,14 +792,9 @@ async def my_creator_dashboard(user: dict = Depends(current_user)) -> Any:
     return await _creator_stats(user, include_claimable=True)
 
 
-@router.post("/me/creator/claim")
-async def claim_fees(user: dict = Depends(current_user)) -> Any:
-    stats = await _creator_stats(user, include_claimable=True)
-    claimable = stats["fees_claimable"]
-    if claimable <= 0:
-        raise HTTPException(400, "Nada de lenha para pegar ainda.")
-    await db()[USERS].update_one({"id": user["id"]}, {"$inc": {"fees_claimed": claimable}})
-    return {"claimed": claimable, "tx_hash": S.fake_tx_hash("claim", user["id"], claimable)}
+# Creator fees are claimed by calling SparkCurve.claimCreatorFees() from the
+# creator's own wallet. There is deliberately no server-side claim endpoint:
+# the backend holds no key and must never be able to move anyone's money.
 
 
 # --------------------------------------------------------------------------
@@ -984,7 +806,7 @@ async def platform_stats() -> Any:
     since = utcnow() - timedelta(hours=24)
     rows = await db()[TRADES].aggregate([
         {"$match": {"ts": {"$gte": since}}},
-        {"$group": {"_id": None, "volume": {"$sum": "$quote"}, "n": {"$sum": 1}}},
+        {"$group": {"_id": None, "volume": {"$sum": "$quote_f"}, "n": {"$sum": 1}}},
     ]).to_list(1)
     return {
         "tokens_total": await db()[TOKENS].count_documents({}),
@@ -1008,7 +830,7 @@ async def leaderboard(window: str = Query("week"), limit: int = Query(25, ge=1, 
     since = utcnow() - timedelta(days=days)
     rows = await db()[TRADES].aggregate([
         {"$match": {"ts": {"$gte": since}}},
-        {"$group": {"_id": "$user_id", "volume": {"$sum": "$quote"}, "trades": {"$sum": 1}}},
+        {"$group": {"_id": "$user_id", "volume": {"$sum": "$quote_f"}, "trades": {"$sum": 1}}},
         {"$sort": {"volume": -1}},
         {"$limit": limit},
     ]).to_list(limit)

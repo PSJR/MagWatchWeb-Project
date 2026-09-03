@@ -8,6 +8,7 @@ import { useCelebration } from '../components/Celebration';
 import { useWallet } from '../hooks/useWallet';
 import { useAsync } from '../hooks/useLive';
 import { api } from '../lib/api';
+import { claimCreatorFees, readClaimableFees } from '../lib/contracts';
 import { money, pct } from '../lib/format';
 
 /**
@@ -36,12 +37,13 @@ const FILTERS = [
 /** Renders /creator (own dashboard) and /c/:handle (public creator profile). */
 export default function Creator({ own = false }) {
   const { handle: routeHandle } = useParams();
-  const { user, connect } = useWallet();
+  const { user, connect, address, getWalletClient } = useWallet();
   const handle = own ? user?.handle : routeHandle;
   const { burst } = useCelebration();
 
   const [filter, setFilter] = useState('all');
   const [claiming, setClaiming] = useState(false);
+  const [claimError, setClaimError] = useState(null);
   const claimRef = React.useRef(null);
 
   const data = useAsync(
@@ -85,14 +87,33 @@ export default function Creator({ own = false }) {
   const level = LEVELS[c.level] || LEVELS.bronze;
   const tokens = c.tokens.filter((t) => filter === 'all' || t.status === filter);
 
+  /**
+   * Fees are claimed by calling the curve directly from the creator's wallet.
+   * The backend has no key and cannot move them — it only reports what the
+   * chain already owes.
+   */
   const claim = async () => {
+    const walletClient = getWalletClient();
+    if (!walletClient) { setClaimError('Reconecte a carteira.'); return; }
     setClaiming(true);
+    setClaimError(null);
     try {
-      await api.claimFees();
+      const owed = c.tokens.filter((t) => t.curve);
+      let claimed = 0;
+      for (const t of owed) {
+        const amount = await readClaimableFees(t.curve).catch(() => 0n);
+        if (amount <= 0n) continue;
+        await claimCreatorFees({ walletClient, account: address, curveAddress: t.curve });
+        claimed += 1;
+      }
+      if (!claimed) { setClaimError('Nada de lenha para pegar ainda.'); return; }
       burst(claimRef.current, { tone: 'gold', count: 20 });
       data.reload();
-    } catch { /* the button re-enables; the error surfaces on reload */ }
-    finally { setClaiming(false); }
+    } catch (err) {
+      setClaimError(err.message);
+    } finally {
+      setClaiming(false);
+    }
   };
 
   return (
@@ -139,12 +160,20 @@ export default function Creator({ own = false }) {
           {own && (
             <Button
               ref={claimRef} size="sm" variant="gold" loading={claiming}
-              disabled={!c.fees_claimable} onClick={claim} className="ml-auto"
+              onClick={claim} className="ml-auto"
             >
-              Sacar {c.fees_claimable ? money(c.fees_claimable, 'ETH') : ''} 🪵
+              Sacar lenha 🪵
             </Button>
           )}
         </div>
+        {claimError && (
+          <p className="text-caption text-coral-800 bg-coral-100 rounded-md px-3 py-2 mt-3">{claimError}</p>
+        )}
+        {own && (
+          <p className="text-caption text-gold-800 mt-2">
+            O saque chama o contrato direto da sua carteira. A plataforma não guarda chave e não move sua lenha.
+          </p>
+        )}
       </section>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">

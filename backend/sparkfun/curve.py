@@ -1,185 +1,175 @@
-"""spark.fun bonding curve — settlement source of truth.
+"""spark.fun bonding curve — mirror of contracts/SparkCurve.sol.
 
-Constant-product curve over *virtual* reserves:
+The contract is the source of truth and its arithmetic is exact integers, so
+this module is integer too. Floats appear only in display helpers, never in a
+number that has to agree with settlement.
 
-    k        = virtual_base * virtual_quote
-    base_out = virtual_base  - k / (virtual_quote + d_quote)   (buy)
-    quote_out= virtual_quote - k / (virtual_base  + d_base)    (sell)
-    price    = virtual_quote / virtual_base
+    base_out  = virtual_base  * quote_in / (virtual_quote + quote_in)
+    quote_out = virtual_quote * base_in  / (virtual_base  + base_in)
 
-The curve sells CURVE_SUPPLY tokens. Once the raise reaches the pair's
-graduation target the curve closes and LP_SUPPLY plus the raised quote seed a
-permanently locked Uniswap V3 position.
+Those are algebraically identical to `vb - k/(vq + dq)` but need no division to
+derive reserves, so nothing is approximated. Rounding matches the contract:
+floor on what the trader receives, ceil on what an oversized final buy pays.
 
-This module mirrors frontend/src/sparkfun/lib/curve.js. The client copy exists
-only for instant quote previews; every number that touches a balance is
-computed here. tests/test_curve_parity.py pins the two together.
+tests/test_curve_parity.py pins this file, curve.js and the contract together
+against fixtures generated from the compiled contract itself.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Optional
 
-TOTAL_SUPPLY = 1_000_000_000.0
-CURVE_SUPPLY = 800_000_000.0   # sold along the curve
-LP_SUPPLY = 200_000_000.0      # seeded into Uniswap V3 at graduation
+E18 = 10**18
 
-FEES: dict[str, dict[str, float]] = {
-    "standard": {"creator": 0.010, "protocol": 0.005},
-    # Mayhem pays the creator more; the protocol cut is unchanged.
-    "mayhem": {"creator": 0.025, "protocol": 0.005},
-}
+TOTAL_SUPPLY = 1_000_000_000 * E18
+CURVE_SUPPLY = 800_000_000 * E18
+LP_SUPPLY = 200_000_000 * E18
+BPS = 10_000
 
-WALLET_CAP_SHARE = 0.02  # share of CURVE_SUPPLY; Mayhem removes the cap
+STANDARD_VIRTUAL_BASE = 1_073_000_000 * E18
+# Mayhem steepens the curve. The floor is CURVE_SUPPLY: below it there is no
+# solution. 85% keeps a deliberate margin.
+MAYHEM_VIRTUAL_BASE = (1_073_000_000 * E18 * 85) // 100
+
+STANDARD_CREATOR_FEE_BPS = 100
+MAYHEM_CREATOR_FEE_BPS = 250
+PROTOCOL_FEE_BPS = 50
+WALLET_CAP_BPS = 1_000  # 10% of the graduation target
 
 PAIRS: dict[str, dict[str, Any]] = {
-    "ETH": {
-        "symbol": "ETH",
-        "decimals": 18,
-        "graduation_raise": 12.0,
-        "virtual_base_0": 1_073_000_000.0,
-    },
-    "USDC": {
-        "symbol": "USDC",
-        "decimals": 6,
-        "graduation_raise": 36_000.0,
-        "virtual_base_0": 1_073_000_000.0,
-    },
+    "ETH": {"symbol": "ETH", "decimals": 18, "graduation_raise": 12 * E18},
+    "USDC": {"symbol": "USDC", "decimals": 6, "graduation_raise": 36_000 * 10**6},
 }
 
-# Less virtual base => faster price impact. The factor has a hard floor:
-# virtual_base_0 must stay above CURVE_SUPPLY or the curve has no solution
-# (1_073_000_000 * f > 800_000_000 => f > 0.7456). 0.85 keeps a safe margin
-# while roughly halving the starting market cap and doubling the final one.
-MAYHEM_STEEPNESS = 0.85
+POOL_FEE = 10_000  # 1%, matching SparkCurve.POOL_FEE
 
 
 class CurveError(ValueError):
     """Raised for trades the curve cannot honour."""
 
 
+def _ceil_div(a: int, b: int) -> int:
+    return -(-a // b)
+
+
 @dataclass(frozen=True)
 class CurveParams:
     pair: str
+    decimals: int
     mayhem: bool
-    virtual_base_0: float
-    virtual_quote_0: float
-    graduation_raise: float
-    fees: dict[str, float] = field(default_factory=dict)
-    wallet_cap: float | None = None
+    virtual_base_0: int
+    virtual_quote_0: int
+    graduation_raise: int
+    creator_fee_bps: int
+    protocol_fee_bps: int
+    wallet_quote_cap: int
 
 
 def curve_params(pair: str = "ETH", mayhem: bool = False) -> CurveParams:
-    """Immutable curve parameters for a token.
-
-    virtual_quote_0 is derived so the curve reaches exactly `graduation_raise`
-    at the moment CURVE_SUPPLY has been sold.
-    """
     p = PAIRS.get(pair, PAIRS["ETH"])
-    virtual_base_0 = p["virtual_base_0"] * (MAYHEM_STEEPNESS if mayhem else 1.0)
-    remaining = virtual_base_0 - CURVE_SUPPLY
-    if remaining <= 0:
-        raise CurveError("curve misconfigured: virtual_base_0 must exceed CURVE_SUPPLY")
-    virtual_quote_0 = (p["graduation_raise"] * remaining) / CURVE_SUPPLY
+    virtual_base_0 = MAYHEM_VIRTUAL_BASE if mayhem else STANDARD_VIRTUAL_BASE
+    if virtual_base_0 <= CURVE_SUPPLY:
+        raise CurveError("curve unsolvable: virtual_base_0 must exceed CURVE_SUPPLY")
+    raise_target = p["graduation_raise"]
     return CurveParams(
         pair=p["symbol"],
+        decimals=p["decimals"],
         mayhem=mayhem,
         virtual_base_0=virtual_base_0,
-        virtual_quote_0=virtual_quote_0,
-        graduation_raise=p["graduation_raise"],
-        fees=FEES["mayhem"] if mayhem else FEES["standard"],
-        wallet_cap=None if mayhem else CURVE_SUPPLY * WALLET_CAP_SHARE,
+        # Derived exactly as the constructor does.
+        virtual_quote_0=(raise_target * (virtual_base_0 - CURVE_SUPPLY)) // CURVE_SUPPLY,
+        graduation_raise=raise_target,
+        creator_fee_bps=MAYHEM_CREATOR_FEE_BPS if mayhem else STANDARD_CREATOR_FEE_BPS,
+        protocol_fee_bps=PROTOCOL_FEE_BPS,
+        wallet_quote_cap=0 if mayhem else (raise_target * WALLET_CAP_BPS) // BPS,
     )
 
 
-def reserves(params: CurveParams, base_sold: float) -> dict[str, float]:
-    virtual_base = params.virtual_base_0 - base_sold
-    k = params.virtual_base_0 * params.virtual_quote_0
-    virtual_quote = k / virtual_base
-    return {
-        "virtual_base": virtual_base,
-        "virtual_quote": virtual_quote,
-        "k": k,
-        "raised": virtual_quote - params.virtual_quote_0,
-    }
+def virtual_base(p: CurveParams, base_sold: int) -> int:
+    return p.virtual_base_0 - base_sold
 
 
-def spot_price(params: CurveParams, base_sold: float) -> float:
-    r = reserves(params, base_sold)
-    return r["virtual_quote"] / r["virtual_base"]
+def virtual_quote(p: CurveParams, quote_raised: int) -> int:
+    return p.virtual_quote_0 + quote_raised
 
 
-def market_cap(params: CurveParams, base_sold: float) -> float:
-    return spot_price(params, base_sold) * TOTAL_SUPPLY
+def spot_price(p: CurveParams, base_sold: int, quote_raised: int) -> float:
+    """Quote per whole token. Display only — never used for settlement."""
+    vb = virtual_base(p, base_sold)
+    return 0.0 if vb <= 0 else virtual_quote(p, quote_raised) / vb
 
 
-def progress(params: CurveParams, base_sold: float) -> float:
-    return max(0.0, min(1.0, base_sold / CURVE_SUPPLY))
+def market_cap(p: CurveParams, base_sold: int, quote_raised: int) -> float:
+    return spot_price(p, base_sold, quote_raised) * (TOTAL_SUPPLY // E18)
 
 
-def quote_to_graduate(params: CurveParams, base_sold: float) -> float:
-    return max(0.0, params.graduation_raise - reserves(params, base_sold)["raised"])
+def progress(p: CurveParams, quote_raised: int) -> float:
+    if quote_raised >= p.graduation_raise:
+        return 1.0
+    return ((quote_raised * BPS) // p.graduation_raise) / BPS
 
 
-def quote_buy(params: CurveParams, base_sold: float, quote_in: float) -> dict[str, Any]:
-    """Quote a buy. `quote_in` is gross; fees come off the top, so the number
-    the user types is the number that leaves their wallet."""
-    if quote_in is None or quote_in <= 0:
-        return _empty(params, base_sold, "buy")
+def quote_to_graduate(p: CurveParams, quote_raised: int) -> int:
+    return max(0, p.graduation_raise - quote_raised)
 
-    creator = params.fees["creator"]
-    protocol = params.fees["protocol"]
-    net = quote_in * (1.0 - creator - protocol)
 
-    r = reserves(params, base_sold)
-    base_out = r["virtual_base"] - r["k"] / (r["virtual_quote"] + net)
+def quote_buy(p: CurveParams, base_sold: int, quote_raised: int, quote_in: int) -> dict[str, Any]:
+    """Mirrors SparkCurve.previewBuy, including the ceil on an oversized buy."""
+    if quote_in <= 0:
+        return _empty("buy")
 
-    # The curve never sells more than it has left; the remainder is refunded.
-    available = CURVE_SUPPLY - base_sold
-    refund = 0.0
-    if base_out > available:
-        base_out = available
-        quote_needed = r["k"] / (r["virtual_base"] - base_out) - r["virtual_quote"]
-        gross_needed = quote_needed / (1.0 - creator - protocol)
-        refund = max(0.0, quote_in - gross_needed)
+    amount = quote_in
+    vb = virtual_base(p, base_sold)
+    vq = virtual_quote(p, quote_raised)
+    net = amount - (amount * p.creator_fee_bps) // BPS - (amount * p.protocol_fee_bps) // BPS
 
-    spend = quote_in - refund
+    base_out = (vb * net) // (vq + net)
+    refund = 0
+
+    remaining = CURVE_SUPPLY - base_sold
+    if base_out > remaining:
+        base_out = remaining
+        net_needed = _ceil_div(base_out * vq, vb - base_out)
+        gross = _ceil_div(net_needed * BPS, BPS - p.creator_fee_bps - p.protocol_fee_bps)
+        if gross >= amount:
+            gross = amount
+        refund = amount - gross
+        amount = gross
+
+    creator_fee = (amount * p.creator_fee_bps) // BPS
+    protocol_fee = (amount * p.protocol_fee_bps) // BPS
+    net_spent = amount - creator_fee - protocol_fee
+    next_raised = quote_raised + net_spent
     next_sold = base_sold + base_out
-    before = spot_price(params, base_sold)
-    after = spot_price(params, next_sold)
+
     return {
         "side": "buy",
         "base_out": base_out,
-        "quote_in": spend,
+        "quote_in": amount,
         "refund": refund,
-        "creator_fee": spend * creator,
-        "protocol_fee": spend * protocol,
-        "avg_price": (spend / base_out) if base_out > 0 else 0.0,
-        "price_before": before,
-        "price_after": after,
-        "price_impact": _impact(before, after),
+        "creator_fee": creator_fee,
+        "protocol_fee": protocol_fee,
         "next_sold": next_sold,
-        "graduates": next_sold >= CURVE_SUPPLY - 1e-9,
+        "next_raised": next_raised,
+        "graduates": next_raised >= p.graduation_raise or next_sold >= CURVE_SUPPLY,
+        "price_before": spot_price(p, base_sold, quote_raised),
+        "price_after": spot_price(p, next_sold, next_raised),
     }
 
 
-def quote_sell(params: CurveParams, base_sold: float, base_in: float) -> dict[str, Any]:
-    """Quote a sell. `base_in` is tokens sold; fees come off the proceeds."""
-    if base_in is None or base_in <= 0:
-        return _empty(params, base_sold, "sell")
+def quote_sell(p: CurveParams, base_sold: int, quote_raised: int, base_in: int) -> dict[str, Any]:
+    """Mirrors SparkCurve.previewSell."""
+    if base_in <= 0:
+        return _empty("sell")
 
     amount = min(base_in, base_sold)
-    r = reserves(params, base_sold)
-    gross = r["virtual_quote"] - r["k"] / (r["virtual_base"] + amount)
-
-    creator = params.fees["creator"]
-    protocol = params.fees["protocol"]
-    creator_fee = gross * creator
-    protocol_fee = gross * protocol
+    gross = (virtual_quote(p, quote_raised) * amount) // (virtual_base(p, base_sold) + amount)
+    creator_fee = (gross * p.creator_fee_bps) // BPS
+    protocol_fee = (gross * p.protocol_fee_bps) // BPS
+    next_raised = quote_raised - gross
     next_sold = base_sold - amount
-    before = spot_price(params, base_sold)
-    after = spot_price(params, next_sold)
+
     return {
         "side": "sell",
         "base_in": amount,
@@ -187,56 +177,34 @@ def quote_sell(params: CurveParams, base_sold: float, base_in: float) -> dict[st
         "gross_quote": gross,
         "creator_fee": creator_fee,
         "protocol_fee": protocol_fee,
-        "avg_price": (gross / amount) if amount > 0 else 0.0,
-        "price_before": before,
-        "price_after": after,
-        "price_impact": _impact(before, after),
         "next_sold": next_sold,
+        "next_raised": next_raised,
         "graduates": False,
+        "price_before": spot_price(p, base_sold, quote_raised),
+        "price_after": spot_price(p, next_sold, next_raised),
     }
 
 
-def curve_samples(params: CurveParams, base_sold: float, points: int = 64) -> list[dict[str, float]]:
-    out = []
-    for i in range(points + 1):
-        sold = CURVE_SUPPLY * i / points
-        out.append({
-            "sold": sold,
-            "progress": sold / CURVE_SUPPLY,
-            "price": spot_price(params, sold),
-            "cap": market_cap(params, sold),
-            "reached": sold <= base_sold,
-        })
-    return out
-
-
-def graduation_plan(params: CurveParams, base_sold: float) -> dict[str, Any]:
-    """What the Uniswap V3 position looks like the moment the curve closes."""
-    r = reserves(params, base_sold)
-    price = spot_price(params, base_sold)
+def graduation_plan(p: CurveParams, quote_raised: int) -> dict[str, Any]:
+    """What the Uniswap V3 position looks like when the curve closes."""
+    base_sold = p.virtual_base_0 - (p.virtual_base_0 * p.virtual_quote_0) // virtual_quote(p, quote_raised)
+    price = spot_price(p, base_sold, quote_raised)
     return {
-        "pair": params.pair,
-        "quote_liquidity": r["raised"],
+        "pair": p.pair,
+        "quote_liquidity": quote_raised,
         "base_liquidity": LP_SUPPLY,
         "entry_price": price,
-        "market_cap": price * TOTAL_SUPPLY,
+        "market_cap": price * (TOTAL_SUPPLY // E18),
+        "pool_fee": POOL_FEE,
         "range": "full",
         "locked": True,
     }
 
 
-def _impact(before: float, after: float) -> float:
-    if before <= 0:
-        return 0.0
-    return (after - before) / before
-
-
-def _empty(params: CurveParams, base_sold: float, side: str) -> dict[str, Any]:
-    price = spot_price(params, base_sold)
+def _empty(side: str) -> dict[str, Any]:
     return {
-        "side": side,
-        "base_out": 0.0, "base_in": 0.0, "quote_in": 0.0, "quote_out": 0.0,
-        "gross_quote": 0.0, "refund": 0.0, "creator_fee": 0.0, "protocol_fee": 0.0,
-        "avg_price": price, "price_before": price, "price_after": price,
-        "price_impact": 0.0, "next_sold": base_sold, "graduates": False,
+        "side": side, "base_out": 0, "base_in": 0, "quote_in": 0, "quote_out": 0,
+        "gross_quote": 0, "refund": 0, "creator_fee": 0, "protocol_fee": 0,
+        "next_sold": 0, "next_raised": 0, "graduates": False,
+        "price_before": 0.0, "price_after": 0.0,
     }

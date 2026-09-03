@@ -7,17 +7,43 @@
 
 const SUBSCRIPTS = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
 
+/**
+ * BigInt wei -> Number, for display only. Contract amounts are BigInt
+ * everywhere they matter; this is the single place they become lossy, and it
+ * only ever feeds text on screen.
+ */
+export function fromUnits(value, decimals = 18) {
+  if (value === null || value === undefined) return 0;
+  if (typeof value !== 'bigint') return Number(value);
+  const base = 10n ** BigInt(decimals);
+  const whole = value / base;
+  const frac = value % base;
+  return Number(whole) + Number(frac) / Number(base);
+}
+
+/** Number -> BigInt wei, rounding down. Used when the user types an amount. */
+export function toUnits(value, decimals = 18) {
+  const text = String(value ?? '').trim();
+  if (!text || Number.isNaN(Number(text))) return 0n;
+  const [whole = '0', frac = ''] = text.split('.');
+  const padded = (frac + '0'.repeat(decimals)).slice(0, decimals);
+  return BigInt(whole || '0') * 10n ** BigInt(decimals) + BigInt(padded || '0');
+}
+
+const asNumber = (n, decimals) => (typeof n === 'bigint' ? fromUnits(n, decimals) : n);
+
 /** U+2212 MINUS SIGN — never a hyphen in front of a number. */
 export const MINUS = '−';
 
-export function compact(n, { prefix = '', digits = 3 } = {}) {
+export function compact(value, { prefix = '', digits = 3, decimals = 18 } = {}) {
+  const n = asNumber(value, decimals);
   if (n === null || n === undefined || Number.isNaN(n)) return `${prefix}—`;
   const abs = Math.abs(n);
   const sign = n < 0 ? MINUS : '';
   const unit = abs >= 1e9 ? ['B', 1e9] : abs >= 1e6 ? ['M', 1e6] : abs >= 1e3 ? ['K', 1e3] : ['', 1];
   const v = abs / unit[1];
-  const decimals = v >= 100 ? 0 : v >= 10 ? 1 : 2;
-  const body = unit[0] ? v.toFixed(decimals) : v.toFixed(abs >= 1 ? 2 : Math.min(digits, 4));
+  const places = v >= 100 ? 0 : v >= 10 ? 1 : 2;
+  const body = unit[0] ? v.toFixed(places) : v.toFixed(abs >= 1 ? 2 : Math.min(digits, 4));
   return `${sign}${prefix}${trimZeros(body)}${unit[0]}`;
 }
 
@@ -29,7 +55,8 @@ export function usd(n, opts = {}) {
  * Sub-cent prices use subscript zero notation: $0.0₅418 rather than a wall of
  * zeros that no one can count at a glance.
  */
-export function price(n, { prefix = '$' } = {}) {
+export function price(value, { prefix = '$', decimals = 18 } = {}) {
+  const n = asNumber(value, decimals);
   if (!(n > 0)) return `${prefix}0.00`;
   if (n >= 1) return `${prefix}${n.toFixed(2)}`;
   if (n >= 0.01) return `${prefix}${n.toFixed(4)}`;
@@ -53,18 +80,20 @@ export function pct(n, { digits = 1, sign = true } = {}) {
   return `${s}${Math.abs(v).toFixed(digits)}%`;
 }
 
-export function tokenAmount(n) {
+export function tokenAmount(value) {
+  const n = asNumber(value, 18);
   if (!(n > 0)) return '0';
   if (n >= 1e6) return compact(n);
   return Math.round(n).toLocaleString('pt-BR');
 }
 
-export function quote(n, pair = 'ETH') {
+export function quote(value, pair = 'ETH') {
+  const n = asNumber(value, pair === 'USDC' ? 6 : 18);
   if (pair === 'USDC') return usd(n);
   if (!(n > 0)) return '0 ETH';
   if (n >= 1000) return `${compact(n)} ETH`;
-  const decimals = n >= 10 ? 2 : n >= 1 ? 3 : n >= 0.001 ? 4 : 6;
-  return `${trimZeros(n.toFixed(decimals))} ETH`;
+  const places = n >= 10 ? 2 : n >= 1 ? 3 : n >= 0.001 ? 4 : 6;
+  return `${trimZeros(n.toFixed(places))} ETH`;
 }
 
 /**
@@ -75,8 +104,8 @@ export function quote(n, pair = 'ETH') {
  * figure for ETH pairs needs an ETH/USD feed, which the platform does not have
  * yet; until it does, values are shown honestly in the pair's own unit.
  */
-export function money(n, pair = 'ETH', opts) {
-  return pair === 'USDC' ? usd(n, opts) : quote(n, pair);
+export function money(value, pair = 'ETH', opts) {
+  return pair === 'USDC' ? usd(asNumber(value, 6), opts) : quote(value, pair);
 }
 
 /** 0x7f2a…9C41 — six leading, four trailing, per the spec. */

@@ -1,169 +1,153 @@
 /**
- * spark.fun bonding curve — "a fogueira"
+ * spark.fun bonding curve — client mirror of contracts/SparkCurve.sol.
  *
- * Constant-product curve over *virtual* reserves, the same shape used by the
- * dominant launchpads, parameterised for the Robinhood Chain (ETH gas).
+ * The contract is exact integer arithmetic, so this is BigInt too: a float
+ * preview would disagree with settlement in the last digits, and the trade
+ * panel would promise a number the chain does not deliver. Every function here
+ * mirrors the Solidity line for line, including rounding direction.
  *
- *   k = virtualBase * virtualQuote                       (invariant)
- *   baseOut  = virtualBase  - k / (virtualQuote + dQuote)  (buy)
- *   quoteOut = virtualQuote - k / (virtualBase  + dBase)   (sell)
- *   price    = virtualQuote / virtualBase
+ *   baseOut  = virtualBase  * quoteIn / (virtualQuote + quoteIn)
+ *   quoteOut = virtualQuote * baseIn  / (virtualBase  + baseIn)
  *
- * The curve sells CURVE_SUPPLY tokens. When the raise reaches the pair's
- * graduation target, the curve closes and LP_SUPPLY plus the raised quote seed
- * a permanently locked Uniswap V3 position — "a chama eterna".
- *
- * IMPORTANT: this file is mirrored byte-for-byte in behaviour by
- * backend/sparkfun/curve.py, which is the settlement source of truth. The
- * client copy exists only for instant (sub-frame) quote previews. Any change
- * here must be made there, and backend/tests/test_curve_parity.py must pass.
+ * tests/test_curve_parity.py pins this file, curve.py and the contract together.
  */
 
-export const TOTAL_SUPPLY = 1_000_000_000;
-export const CURVE_SUPPLY = 800_000_000; // sold along the curve
-export const LP_SUPPLY = 200_000_000;    // seeded into Uniswap V3 at graduation
+const E18 = 10n ** 18n;
 
-export const FEES = {
-  standard: { creator: 0.010, protocol: 0.005 },
-  // Mayhem pays the creator more and charges the same protocol cut.
-  mayhem: { creator: 0.025, protocol: 0.005 },
-};
+export const TOTAL_SUPPLY = 1_000_000_000n * E18;
+export const CURVE_SUPPLY = 800_000_000n * E18;
+export const LP_SUPPLY = 200_000_000n * E18;
+export const BPS = 10_000n;
 
-/** Per-wallet cap as a share of CURVE_SUPPLY. Mayhem removes it entirely. */
-export const WALLET_CAP_SHARE = 0.02;
+export const STANDARD_VIRTUAL_BASE = 1_073_000_000n * E18;
+/** Mayhem steepens the curve. Floor is CURVE_SUPPLY or the curve has no solution. */
+export const MAYHEM_VIRTUAL_BASE = (1_073_000_000n * E18 * 85n) / 100n;
+
+export const STANDARD_CREATOR_FEE_BPS = 100n;
+export const MAYHEM_CREATOR_FEE_BPS = 250n;
+export const PROTOCOL_FEE_BPS = 50n;
+export const WALLET_CAP_BPS = 1_000n; // 10% of the graduation target
 
 export const PAIRS = {
   ETH: {
     symbol: 'ETH',
     label: 'ETH',
     decimals: 18,
-    graduationRaise: 12,     // ETH raised on the curve before graduation
-    virtualBase0: 1_073_000_000,
+    graduationRaise: 12n * E18,
+    address: null, // native
     blurb: 'o gas nativo da chain',
   },
   USDC: {
     symbol: 'USDC',
     label: 'USDC',
     decimals: 6,
-    graduationRaise: 36_000, // USDC
-    virtualBase0: 1_073_000_000,
+    graduationRaise: 36_000n * 10n ** 6n,
+    address: null, // set from REACT_APP_USDC_ADDRESS at runtime
     blurb: 'preço estável, market cap fácil de ler',
   },
 };
 
-/**
- * Mayhem steepens the curve: less virtual base means faster price impact.
- * The factor has a hard floor — virtualBase0 must stay above CURVE_SUPPLY or
- * the curve has no solution (1.073e9 * f > 8e8 => f > 0.7456). 0.85 keeps a
- * safe margin while roughly halving the starting cap and doubling the final one.
- */
-const MAYHEM_STEEPNESS = 0.85;
+const ceilDiv = (a, b) => (a + b - 1n) / b;
+const big = (v) => (typeof v === 'bigint' ? v : BigInt(v ?? 0));
 
-/**
- * Resolve the immutable curve parameters for a token.
- * virtualQuote0 is derived so the curve reaches exactly `graduationRaise`
- * at the moment CURVE_SUPPLY has been sold.
- */
 export function curveParams({ pair = 'ETH', mayhem = false } = {}) {
   const p = PAIRS[pair] || PAIRS.ETH;
-  const virtualBase0 = p.virtualBase0 * (mayhem ? MAYHEM_STEEPNESS : 1);
-  const remaining = virtualBase0 - CURVE_SUPPLY;
-  if (remaining <= 0) throw new Error('curve misconfigured: virtualBase0 must exceed CURVE_SUPPLY');
-  const virtualQuote0 = (p.graduationRaise * remaining) / CURVE_SUPPLY;
+  const virtualBase0 = mayhem ? MAYHEM_VIRTUAL_BASE : STANDARD_VIRTUAL_BASE;
+  const graduationRaise = p.graduationRaise;
   return {
     pair: p.symbol,
+    decimals: p.decimals,
     mayhem,
     virtualBase0,
-    virtualQuote0,
-    graduationRaise: p.graduationRaise,
-    fees: mayhem ? FEES.mayhem : FEES.standard,
-    walletCap: mayhem ? null : CURVE_SUPPLY * WALLET_CAP_SHARE,
+    // Derived exactly as the constructor does, so both land on the target.
+    virtualQuote0: (graduationRaise * (virtualBase0 - CURVE_SUPPLY)) / CURVE_SUPPLY,
+    graduationRaise,
+    creatorFeeBps: mayhem ? MAYHEM_CREATOR_FEE_BPS : STANDARD_CREATOR_FEE_BPS,
+    protocolFeeBps: PROTOCOL_FEE_BPS,
+    walletQuoteCap: mayhem ? 0n : (graduationRaise * WALLET_CAP_BPS) / BPS,
   };
 }
 
-/** Live reserves given how much of the curve supply has been sold. */
-export function reserves(params, baseSold) {
-  const virtualBase = params.virtualBase0 - baseSold;
-  const k = params.virtualBase0 * params.virtualQuote0;
-  const virtualQuote = k / virtualBase;
-  return { virtualBase, virtualQuote, k, raised: virtualQuote - params.virtualQuote0 };
+export const virtualBase = (p, baseSold) => p.virtualBase0 - big(baseSold);
+export const virtualQuote = (p, quoteRaised) => p.virtualQuote0 + big(quoteRaised);
+
+/** Spot price in quote per whole token, as a Number for display only. */
+export function spotPrice(p, baseSold, quoteRaised) {
+  const vb = virtualBase(p, baseSold);
+  const vq = virtualQuote(p, quoteRaised);
+  if (vb <= 0n) return 0;
+  return Number(vq) / Number(vb);
 }
 
-/** Spot price in quote per token. */
-export function spotPrice(params, baseSold) {
-  const { virtualBase, virtualQuote } = reserves(params, baseSold);
-  return virtualQuote / virtualBase;
+export function marketCap(p, baseSold, quoteRaised) {
+  return spotPrice(p, baseSold, quoteRaised) * Number(TOTAL_SUPPLY / E18);
 }
 
-/** Fully diluted market cap, in quote units. */
-export function marketCap(params, baseSold) {
-  return spotPrice(params, baseSold) * TOTAL_SUPPLY;
+export function progress(p, quoteRaised) {
+  const raised = big(quoteRaised);
+  if (raised >= p.graduationRaise) return 1;
+  return Number((raised * 10_000n) / p.graduationRaise) / 10_000;
 }
 
-/** Curve completion, 0..1 — what the progress bar and the flame read from. */
-export function progress(params, baseSold) {
-  return clamp(baseSold / CURVE_SUPPLY, 0, 1);
+export function quoteToGraduate(p, quoteRaised) {
+  const raised = big(quoteRaised);
+  return raised >= p.graduationRaise ? 0n : p.graduationRaise - raised;
 }
 
-/** Quote still needed to graduate. */
-export function quoteToGraduate(params, baseSold) {
-  const { raised } = reserves(params, baseSold);
-  return Math.max(0, params.graduationRaise - raised);
-}
+/** Mirrors SparkCurve.previewBuy, including the ceil on an oversized final buy. */
+export function quoteBuy(p, baseSold, quoteRaised, quoteIn) {
+  let amount = big(quoteIn);
+  const sold = big(baseSold);
+  if (amount <= 0n) return emptyQuote('buy');
 
-/**
- * Quote a buy. `quoteIn` is the gross amount the user spends; fees come off
- * the top so the number they type is the number that leaves their wallet.
- */
-export function quoteBuy(params, baseSold, quoteIn) {
-  if (!(quoteIn > 0)) return emptyQuote(params, baseSold, 'buy');
-  const { creator, protocol } = params.fees;
-  const creatorFee = quoteIn * creator;
-  const protocolFee = quoteIn * protocol;
-  const net = quoteIn - creatorFee - protocolFee;
+  const vb = virtualBase(p, sold);
+  const vq = virtualQuote(p, quoteRaised);
+  const net = amount - (amount * p.creatorFeeBps) / BPS - (amount * p.protocolFeeBps) / BPS;
 
-  const { virtualBase, virtualQuote, k } = reserves(params, baseSold);
-  let baseOut = virtualBase - k / (virtualQuote + net);
+  let baseOut = (vb * net) / (vq + net);
+  let refund = 0n;
 
-  // The curve never sells more than it has left; the remainder is refunded.
-  const available = CURVE_SUPPLY - baseSold;
-  let refund = 0;
-  if (baseOut > available) {
-    baseOut = available;
-    const quoteNeeded = k / (virtualBase - baseOut) - virtualQuote;
-    const grossNeeded = quoteNeeded / (1 - creator - protocol);
-    refund = Math.max(0, quoteIn - grossNeeded);
+  const remaining = CURVE_SUPPLY - sold;
+  if (baseOut > remaining) {
+    baseOut = remaining;
+    const netNeeded = ceilDiv(baseOut * vq, vb - baseOut);
+    let gross = ceilDiv(netNeeded * BPS, BPS - p.creatorFeeBps - p.protocolFeeBps);
+    if (gross >= amount) gross = amount;
+    refund = amount - gross;
+    amount = gross;
   }
 
-  const spendGross = quoteIn - refund;
-  const nextSold = baseSold + baseOut;
+  const creatorFee = (amount * p.creatorFeeBps) / BPS;
+  const protocolFee = (amount * p.protocolFeeBps) / BPS;
+  const netSpent = amount - creatorFee - protocolFee;
+  const nextRaised = big(quoteRaised) + netSpent;
+
   return {
     side: 'buy',
     baseOut,
-    quoteIn: spendGross,
+    quoteIn: amount,
     refund,
-    creatorFee: spendGross * creator,
-    protocolFee: spendGross * protocol,
-    avgPrice: baseOut > 0 ? spendGross / baseOut : 0,
-    priceBefore: spotPrice(params, baseSold),
-    priceAfter: spotPrice(params, nextSold),
-    priceImpact: impact(spotPrice(params, baseSold), spotPrice(params, nextSold)),
-    nextSold,
-    graduates: nextSold >= CURVE_SUPPLY - 1e-9,
+    creatorFee,
+    protocolFee,
+    nextSold: sold + baseOut,
+    nextRaised,
+    graduates: nextRaised >= p.graduationRaise || sold + baseOut >= CURVE_SUPPLY,
+    priceBefore: spotPrice(p, sold, quoteRaised),
+    priceAfter: spotPrice(p, sold + baseOut, nextRaised),
   };
 }
 
-/** Quote a sell. `baseIn` is tokens sold; fees come off the proceeds. */
-export function quoteSell(params, baseSold, baseIn) {
-  if (!(baseIn > 0)) return emptyQuote(params, baseSold, 'sell');
-  const amount = Math.min(baseIn, baseSold);
-  const { virtualBase, virtualQuote, k } = reserves(params, baseSold);
-  const gross = virtualQuote - k / (virtualBase + amount);
+/** Mirrors SparkCurve.previewSell. */
+export function quoteSell(p, baseSold, quoteRaised, baseIn) {
+  const sold = big(baseSold);
+  let amount = big(baseIn);
+  if (amount <= 0n) return emptyQuote('sell');
+  if (amount > sold) amount = sold;
 
-  const { creator, protocol } = params.fees;
-  const creatorFee = gross * creator;
-  const protocolFee = gross * protocol;
-  const nextSold = baseSold - amount;
+  const gross = (virtualQuote(p, quoteRaised) * amount) / (virtualBase(p, sold) + amount);
+  const creatorFee = (gross * p.creatorFeeBps) / BPS;
+  const protocolFee = (gross * p.protocolFeeBps) / BPS;
+  const nextRaised = big(quoteRaised) - gross;
 
   return {
     side: 'sell',
@@ -172,55 +156,48 @@ export function quoteSell(params, baseSold, baseIn) {
     grossQuote: gross,
     creatorFee,
     protocolFee,
-    avgPrice: amount > 0 ? gross / amount : 0,
-    priceBefore: spotPrice(params, baseSold),
-    priceAfter: spotPrice(params, nextSold),
-    priceImpact: impact(spotPrice(params, baseSold), spotPrice(params, nextSold)),
-    nextSold,
+    nextSold: sold - amount,
+    nextRaised,
     graduates: false,
+    priceBefore: spotPrice(p, sold, quoteRaised),
+    priceAfter: spotPrice(p, sold - amount, nextRaised),
   };
 }
 
-/** Tokens receivable for a target quote spend, used by the MAX/percent chips. */
-export function baseForQuote(params, baseSold, quoteIn) {
-  return quoteBuy(params, baseSold, quoteIn).baseOut;
+/** Price impact as a Number, for the panel's warning line. */
+export function priceImpact(q) {
+  if (!q.priceBefore) return 0;
+  return (q.priceAfter - q.priceBefore) / q.priceBefore;
 }
 
-/**
- * Sample the curve for the chart: `points` price samples across the whole
- * curve, plus the live position. Cheap enough to recompute per render.
- */
-export function curveSamples(params, baseSold, points = 64) {
+/** Samples the whole curve for the chart. Floats are fine here — it is a shape. */
+export function curveSamples(p, quoteRaised, points = 72) {
   const out = [];
+  const target = Number(p.graduationRaise);
   for (let i = 0; i <= points; i++) {
-    const sold = (CURVE_SUPPLY * i) / points;
+    const raised = BigInt(Math.floor((Number(p.graduationRaise) * i) / points));
+    // Invert the invariant: baseSold such that vq0 + raised holds.
+    const vq = p.virtualQuote0 + raised;
+    const vb = (p.virtualBase0 * p.virtualQuote0) / vq;
+    const sold = p.virtualBase0 - vb;
     out.push({
+      progress: (i / points) * 100,
+      cap: (Number(vq) / Number(vb)) * Number(TOTAL_SUPPLY / E18),
+      price: Number(vq) / Number(vb),
+      reached: Number(raised) <= Number(quoteRaised ?? 0n),
+      raisedShare: target ? Number(raised) / target : 0,
       sold,
-      progress: sold / CURVE_SUPPLY,
-      price: spotPrice(params, sold),
-      cap: marketCap(params, sold),
-      reached: sold <= baseSold,
     });
   }
   return out;
 }
 
-function impact(before, after) {
-  if (!(before > 0)) return 0;
-  return (after - before) / before;
-}
-
-function emptyQuote(params, baseSold, side) {
-  const price = spotPrice(params, baseSold);
+function emptyQuote(side) {
   return {
     side,
-    baseOut: 0, baseIn: 0, quoteIn: 0, quoteOut: 0, grossQuote: 0, refund: 0,
-    creatorFee: 0, protocolFee: 0, avgPrice: price,
-    priceBefore: price, priceAfter: price, priceImpact: 0,
-    nextSold: baseSold, graduates: false,
+    baseOut: 0n, baseIn: 0n, quoteIn: 0n, quoteOut: 0n, grossQuote: 0n,
+    refund: 0n, creatorFee: 0n, protocolFee: 0n,
+    nextSold: 0n, nextRaised: 0n, graduates: false,
+    priceBefore: 0, priceAfter: 0,
   };
-}
-
-export function clamp(n, lo, hi) {
-  return Math.min(hi, Math.max(lo, n));
 }

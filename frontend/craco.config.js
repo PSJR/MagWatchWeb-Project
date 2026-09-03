@@ -52,6 +52,27 @@ let webpackConfig = {
         ],
       };
 
+      // Several @walletconnect packages ship source maps that point at .ts
+      // files they do not publish, which makes source-map-loader shout on every
+      // build. Our own sources still get maps; third-party ones are skipped.
+      // `exclude` may already be a RegExp, an array, or absent.
+      const skipNodeModules = (rule) => {
+        const existing = rule.exclude;
+        const list = Array.isArray(existing) ? existing : existing ? [existing] : [];
+        rule.exclude = [...list, /node_modules/];
+      };
+      const usesSourceMapLoader = (rule) =>
+        JSON.stringify(rule.use || rule.loader || "").includes("source-map-loader");
+
+      webpackConfig.module.rules.forEach((rule) => {
+        if (usesSourceMapLoader(rule)) skipNodeModules(rule);
+        if (Array.isArray(rule.oneOf)) {
+          rule.oneOf.forEach((one) => {
+            if (usesSourceMapLoader(one)) skipNodeModules(one);
+          });
+        }
+      });
+
       // WebTorrent polyfills
       webpackConfig.resolve.fallback = {
         ...webpackConfig.resolve.fallback,

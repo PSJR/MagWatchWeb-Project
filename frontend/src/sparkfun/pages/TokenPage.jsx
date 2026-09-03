@@ -55,7 +55,6 @@ export default function TokenPage() {
   const t = token.data;
   if (!t) return null;
 
-  const position = (portfolio.data || []).find((p) => p.token.address === address);
   const graduated = t.status === 'graduated';
 
   return (
@@ -140,7 +139,11 @@ export default function TokenPage() {
         </div>
 
         <aside className="lg:sticky lg:top-24 space-y-4">
-          <TradePanel token={t} position={position} onTraded={() => { portfolio.reload(); }} />
+          <TradePanel
+            token={t}
+            curve={{ address: t.curve }}
+            onTraded={() => { token.reload(); trades.reload(); portfolio.reload(); }}
+          />
 
           <div className="bg-surface border border-subtle rounded-xl p-4">
             <p className="overline mb-2">Criador</p>

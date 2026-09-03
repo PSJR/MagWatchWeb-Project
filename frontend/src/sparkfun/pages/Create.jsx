@@ -6,8 +6,10 @@ import { Wick } from '../components/mascots';
 import { useCelebration } from '../components/Celebration';
 import { useWallet } from '../hooks/useWallet';
 import { api } from '../lib/api';
+import { launchToken } from '../lib/contracts';
+import { CONTRACTS, isDeployed } from '../lib/chain';
 import { PAIRS, curveParams, TOTAL_SUPPLY } from '../lib/curve';
-import { money, usd } from '../lib/format';
+import { money, toUnits } from '../lib/format';
 
 const BLANK = {
   name: '', ticker: '', description: '', image_url: '', banner_url: '',
@@ -16,7 +18,7 @@ const BLANK = {
 
 export default function Create() {
   const navigate = useNavigate();
-  const { connected, connect, user } = useWallet();
+  const { signedIn, connect, user, address, getWalletClient, wrongNetwork, switchToChain } = useWallet();
   const { burst } = useCelebration();
   const buttonRef = useRef(null);
 
@@ -58,7 +60,8 @@ export default function Create() {
     mayhem: form.mayhem,
     progress: 0,
     to_graduate: params.graduationRaise,
-    market_cap: (params.virtualQuote0 / params.virtualBase0) * TOTAL_SUPPLY,
+    quote_raised: 0n,
+    market_cap: (Number(params.virtualQuote0) / Number(params.virtualBase0)) * Number(TOTAL_SUPPLY / 10n ** 18n),
     volume_24h: 0,
     change_24h: null,
     base_sold: 0,
@@ -68,27 +71,47 @@ export default function Create() {
 
   const submit = useCallback(async () => {
     setError(null);
-    if (!connected) { await connect().catch(() => {}); return; }
+    if (!signedIn) { await connect().catch((e) => setError(e.message)); return; }
+    if (wrongNetwork) { await switchToChain().catch((e) => setError(e.message)); return; }
+
+    const walletClient = getWalletClient();
+    if (!walletClient) { setError('Reconecte a carteira.'); return; }
+
     setBusy(true);
     try {
-      const token = await api.createToken({
-        name: form.name.trim(),
-        ticker: form.ticker,
+      // Off-chain metadata is stored first so the token page has a description
+      // and links the moment the launch confirms. If this fails the launch is
+      // still fine — the indexer fills in name, symbol and creator from events.
+      const metadata = {
         description: form.description.trim(),
         image_url: form.image_url || null,
         banner_url: form.banner_url || null,
         links: { x: form.x || null, telegram: form.telegram || null, website: form.website || null },
-        pair: form.pair,
+      };
+      const { uri } = await api.pinMetadata(metadata).catch(() => ({ uri: '' }));
+
+      const decimals = form.pair === 'USDC' ? 6 : 18;
+      const { token, curve, hash } = await launchToken({
+        walletClient,
+        account: address,
+        name: form.name.trim(),
+        symbol: form.ticker,
+        metadataURI: uri,
+        quoteToken: form.pair === 'USDC' ? CONTRACTS.usdc : null,
         mayhem: form.mayhem,
-        dev_buy: Number(form.dev_buy) || 0,
+        devBuy: toUnits(form.dev_buy || '0', decimals),
       });
+
+      // Nudge the indexer so the token appears without waiting for a poll.
+      api.indexToken({ token, curve, tx_hash: hash, ...metadata }).catch(() => {});
+
       burst(buttonRef.current, { tone: 'gold', count: 24 });
-      setTimeout(() => navigate(`/t/${token.address}`), 420);
+      setTimeout(() => navigate(`/t/${token}`), 420);
     } catch (err) {
       setError(err.message);
       setBusy(false);
     }
-  }, [connected, connect, form, burst, navigate]);
+  }, [signedIn, connect, wrongNetwork, switchToChain, getWalletClient, address, form, burst, navigate]);
 
   return (
     <div className="pt-6 md:pt-10">
@@ -134,12 +157,20 @@ export default function Create() {
           </div>
         </Section>
 
+        {!isDeployed() && (
+          <p className="text-[13px] text-ember-800 bg-ember-100 rounded-lg px-4 py-3 mb-5">
+            A launchpad ainda não foi publicada nesta rede. Defina
+            <code className="num mx-1">REACT_APP_SPARK_FACTORY</code> com o endereço da SparkFactory.
+          </p>
+        )}
+
         <Section title="Par de negociação">
           <div className="grid sm:grid-cols-2 gap-3">
             {Object.values(PAIRS).map((p) => (
               <button
                 key={p.symbol}
                 type="button"
+                disabled={p.symbol === 'USDC' && !CONTRACTS.usdc}
                 onClick={() => setForm((f) => ({ ...f, pair: p.symbol }))}
                 aria-pressed={form.pair === p.symbol}
                 className={cx(
@@ -154,6 +185,9 @@ export default function Create() {
                 <span className="num text-caption text-ink3 block mt-2">
                   gradua em {money(p.graduationRaise, p.symbol)}
                 </span>
+                {p.symbol === 'USDC' && !CONTRACTS.usdc && (
+                  <span className="text-caption text-ink3 block mt-1">indisponível nesta rede</span>
+                )}
               </button>
             ))}
           </div>
@@ -182,10 +216,11 @@ export default function Create() {
 
         <div className="flex items-center gap-4 flex-wrap">
           <Button
-            ref={buttonRef} size="xl" loading={busy} disabled={!canSubmit}
+            ref={buttonRef} size="xl" loading={busy}
+            disabled={!canSubmit || !isDeployed()}
             onClick={submit} className="min-w-[220px]"
           >
-            🔥 {connected ? 'Acender' : 'Entrar e acender'}
+            🔥 {!signedIn ? 'Entrar e acender' : wrongNetwork ? 'Trocar de rede' : 'Acender'}
           </Button>
           <span className="text-caption text-ink3">
             Custo: só o gas ⛽ ~$0,001
@@ -201,10 +236,10 @@ export default function Create() {
           <Line label="Na curva" value="800.000.000" />
           <Line label="Para a pool" value="200.000.000" />
           <Line label="Market cap inicial" value={money(preview.market_cap, form.pair)} />
-          <Line label="Fee do criador" value={`${(params.fees.creator * 100).toFixed(1)}%`} />
+          <Line label="Fee do criador" value={`${(Number(params.creatorFeeBps) / 100).toFixed(1)}%`} />
           <Line
             label="Limite por carteira"
-            value={params.walletCap ? `${(params.walletCap / 1e6).toFixed(0)}M` : 'sem limite'}
+            value={params.walletQuoteCap > 0n ? money(params.walletQuoteCap, form.pair) : 'sem limite'}
           />
         </dl>
       </aside>
