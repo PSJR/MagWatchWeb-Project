@@ -250,7 +250,7 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
       {tokenBalance > 0n && (
         <p className="text-caption text-ink3 mt-3 flex justify-between">
           <span>Sua posição</span>
-          <span className="num">{tokenAmount(tokenBalance)} $${token.ticker}</span>
+          <span className="num">{tokenAmount(tokenBalance)} ${token.ticker}</span>
         </p>
       )}
     </div>
