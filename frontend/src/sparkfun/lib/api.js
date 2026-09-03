@@ -34,7 +34,11 @@ export class ApiError extends Error {
 }
 
 async function request(path, { method = 'GET', body, auth = true, signal } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  // Only declare a JSON body when there is one: sending Content-Type on a
+  // bodyless GET turns it into a preflighted cross-origin request, costing an
+  // extra round trip on every read.
+  const headers = {};
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
   const session = getSession();
   if (auth && session?.token) headers.Authorization = `Bearer ${session.token}`;
 

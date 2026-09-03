@@ -62,8 +62,21 @@ export function tokenAmount(n) {
 export function quote(n, pair = 'ETH') {
   if (pair === 'USDC') return usd(n);
   if (!(n > 0)) return '0 ETH';
-  const decimals = n >= 1 ? 3 : n >= 0.001 ? 4 : 6;
+  if (n >= 1000) return `${compact(n)} ETH`;
+  const decimals = n >= 10 ? 2 : n >= 1 ? 3 : n >= 0.001 ? 4 : 6;
   return `${trimZeros(n.toFixed(decimals))} ETH`;
+}
+
+/**
+ * Format a value in its own denomination.
+ *
+ * A token paired against ETH has its market cap, volume and fees denominated
+ * in ETH, not dollars — printing `$` on those was simply wrong. Showing a USD
+ * figure for ETH pairs needs an ETH/USD feed, which the platform does not have
+ * yet; until it does, values are shown honestly in the pair's own unit.
+ */
+export function money(n, pair = 'ETH', opts) {
+  return pair === 'USDC' ? usd(n, opts) : quote(n, pair);
 }
 
 /** 0x7f2a…9C41 — six leading, four trailing, per the spec. */
