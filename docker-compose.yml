@@ -1,0 +1,14 @@
+# Just MongoDB — the app itself runs on your machine so you keep hot reload.
+#   docker compose up -d
+services:
+  mongo:
+    image: mongo:7
+    container_name: sparkfun-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - sparkfun-mongo:/data/db
+
+volumes:
+  sparkfun-mongo:
