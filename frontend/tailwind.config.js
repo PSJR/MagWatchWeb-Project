@@ -1,82 +1,130 @@
-/** @type {import('tailwindcss').Config} */
+/** spark.fun design system — Tailwind theme
+ *  Every token maps to a CSS variable declared in src/index.css so light and
+ *  Night Hearth resolve from one set of class names.
+ *  @type {import('tailwindcss').Config} */
 module.exports = {
-    darkMode: ["class"],
-    content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-    "./public/index.html"
-  ],
+  darkMode: ['class'],
+  content: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
   theme: {
-  	extend: {
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		},
-  		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
-  			},
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
-  			},
-  			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
-  			},
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
-  			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
-  			}
-  		},
-  		keyframes: {
-  			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
-  			},
-  			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: '0'
-  				}
-  			}
-  		},
-  		animation: {
-  			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
-  	}
+    extend: {
+      colors: {
+        ember: {
+          50:'var(--ember-50)',100:'var(--ember-100)',200:'var(--ember-200)',300:'var(--ember-300)',
+          400:'var(--ember-400)',500:'var(--ember-500)',600:'var(--ember-600)',700:'var(--ember-700)',
+          800:'var(--ember-800)',900:'var(--ember-900)',
+        },
+        cream: { 50:'var(--cream-50)',100:'var(--cream-100)',200:'var(--cream-200)' },
+        sand:  { 300:'var(--sand-300)',400:'var(--sand-400)' },
+        clay:  { 500:'var(--clay-500)' },
+        cocoa: { 600:'var(--cocoa-600)',700:'var(--cocoa-700)',800:'var(--cocoa-800)',900:'var(--cocoa-900)' },
+        mint:  { 50:'var(--mint-50)',100:'var(--mint-100)',300:'var(--mint-300)',500:'var(--mint-500)',600:'var(--mint-600)',800:'var(--mint-800)' },
+        coral: { 50:'var(--coral-50)',100:'var(--coral-100)',300:'var(--coral-300)',500:'var(--coral-500)',600:'var(--coral-600)',800:'var(--coral-800)' },
+        wild:  { 100:'var(--wild-100)',300:'var(--wild-300)',500:'var(--wild-500)',600:'var(--wild-600)',800:'var(--wild-800)' },
+        magma: { 500:'var(--magma-500)' },
+        gold:  { 100:'var(--gold-100)',300:'var(--gold-300)',500:'var(--gold-500)',600:'var(--gold-600)',800:'var(--gold-800)' },
+        orbit: { 100:'var(--orbit-100)',300:'var(--orbit-300)',500:'var(--orbit-500)',700:'var(--orbit-700)' },
+        guava: { 100:'var(--guava-100)',300:'var(--guava-300)',500:'var(--guava-500)',700:'var(--guava-700)' },
+        ash:   { 100:'var(--ash-100)',400:'var(--ash-400)',600:'var(--ash-600)' },
+
+        canvas:  'var(--bg-canvas)',
+        surface: 'var(--bg-surface)',
+        raised:  'var(--bg-raised)',
+        sunken:  'var(--bg-sunken)',
+        subtle:  'var(--border-subtle)',
+        strong:  'var(--border-strong)',
+
+        ink:   'var(--text-primary)',
+        ink2:  'var(--text-body)',
+        ink3:  'var(--text-secondary)',
+
+        accent: 'var(--accent)',
+        'accent-deep': 'var(--accent-deep)',
+        'accent-soft': 'var(--accent-soft)',
+        buy:  'var(--buy)',
+        sell: 'var(--sell)',
+      },
+      fontFamily: {
+        disp: ['Fredoka', 'Baloo 2', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', '-apple-system', 'system-ui', 'sans-serif'],
+        num:  ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        hand: ['Caveat', 'cursive'],
+      },
+      fontSize: {
+        'display-hero': ['clamp(2.5rem, 1.2rem + 5.4vw, 4.5rem)', { lineHeight: '1.02', letterSpacing: '-.03em' }],
+        'display-lg':   ['clamp(2rem, 1.3rem + 2.9vw, 3rem)',     { lineHeight: '1.08', letterSpacing: '-.025em' }],
+        'display-md':   ['clamp(1.625rem, 1.35rem + 1.15vw, 2.125rem)', { lineHeight: '1.12', letterSpacing: '-.02em' }],
+        'heading-lg':   ['1.375rem', { lineHeight: '1.2',  letterSpacing: '-.015em' }],
+        'heading-md':   ['1.125rem', { lineHeight: '1.25', letterSpacing: '-.01em' }],
+        'num-hero':     ['clamp(2.25rem, 1.4rem + 3.5vw, 3.5rem)', { lineHeight: '1', letterSpacing: '-.02em' }],
+        'num-lg':       ['1.5rem',  { lineHeight: '1.1', letterSpacing: '-.01em' }],
+        'num-md':       ['1rem',    { lineHeight: '1.2' }],
+        'num-sm':       ['0.8125rem', { lineHeight: '1.3' }],
+        label:          ['0.8125rem', { lineHeight: '1.2', letterSpacing: '.01em' }],
+        caption:        ['0.6875rem', { lineHeight: '1.35', letterSpacing: '.02em' }],
+      },
+      borderRadius: {
+        xs:'6px', sm:'10px', md:'14px', lg:'20px', xl:'28px', '2xl':'36px', '3xl':'48px', pill:'999px',
+      },
+      boxShadow: {
+        xs:'var(--shadow-xs)', sm:'var(--shadow-sm)', md:'var(--shadow-md)',
+        lg:'var(--shadow-lg)', xl:'var(--shadow-xl)',
+        'inner-warm':'var(--shadow-inner-warm)',
+        hairline:'var(--ring-hairline)',
+        'glow-ember':'var(--glow-ember)', 'glow-mint':'var(--glow-mint)',
+        'glow-mayhem':'var(--glow-mayhem)', 'glow-gold':'var(--glow-gold)',
+      },
+      transitionTimingFunction: {
+        'out-soft':'cubic-bezier(.22,1,.36,1)',
+        'in-soft':'cubic-bezier(.64,0,.78,0)',
+        cozy:'cubic-bezier(.65,0,.35,1)',
+        pop:'cubic-bezier(.34,1.56,.64,1)',
+        squish:'cubic-bezier(.5,-0.4,.5,1.4)',
+        fire:'cubic-bezier(.16,1,.3,1)',
+      },
+      transitionDuration: {
+        instant:'80ms', fast:'140ms', base:'220ms', slow:'360ms', slower:'560ms', celebrate:'900ms',
+      },
+      backgroundImage: {
+        'grad-ember':'linear-gradient(180deg, var(--ember-300) 0%, var(--ember-500) 100%)',
+        'grad-hearth':'linear-gradient(135deg, #FFD9A8 0%, #FF9350 55%, #FF5FA2 100%)',
+        'grad-dusk':'linear-gradient(180deg, #FFE0C2 0%, #F3C7E0 50%, #C8C2F5 100%)',
+        'grad-mayhem':'linear-gradient(120deg, #8B6BFF 0%, #FF5FA2 50%, #FFC24D 100%)',
+        'grad-bonfire':'conic-gradient(from 0deg, #FFC24D, #FF7A2F, #FF5FA2, #FFC24D)',
+        'grad-buy':'linear-gradient(180deg, var(--mint-500), var(--mint-600))',
+        'grad-sell':'linear-gradient(180deg, var(--coral-500), var(--coral-600))',
+        'grad-ash':'linear-gradient(180deg, var(--ash-100), #D6CEC8)',
+      },
+      keyframes: {
+        // Deliberately stepped, not smooth: the stop-motion read is more cartoon.
+        flicker: {
+          '0%':  { transform:'scale(1,1) rotate(-2deg)' },
+          '50%': { transform:'scale(1.08,.94) rotate(3deg)' },
+          '100%':{ transform:'scale(.96,1.06) rotate(-1deg)' },
+        },
+        bob:      { '0%,100%':{ transform:'translateY(0)' }, '50%':{ transform:'translateY(-6px)' } },
+        beat:     { '0%,100%':{ opacity:'.35', transform:'scale(.8)' }, '50%':{ opacity:'1', transform:'scale(1.15)' } },
+        sheen:    { '0%':{ backgroundPosition:'-140% 0' }, '100%':{ backgroundPosition:'240% 0' } },
+        mayhem:   { to: { backgroundPosition:'300% 0' } },
+        'rise-in':{ from:{ opacity:'0', transform:'translateY(12px)' }, to:{ opacity:'1', transform:'translateY(0)' } },
+        'pop-in': { '0%':{ opacity:'0', transform:'scale(.94)' }, '60%':{ opacity:'1', transform:'scale(1.03)' }, '100%':{ transform:'scale(1)' } },
+        'heat-fade':{ from:{ backgroundColor:'var(--flash-color)' }, to:{ backgroundColor:'transparent' } },
+        shake:    { '0%,100%':{ transform:'translateX(0)' }, '20%':{ transform:'translateX(-4px)' }, '50%':{ transform:'translateX(4px)' }, '80%':{ transform:'translateX(-2px)' } },
+        spin12:   { to: { transform:'rotate(360deg)' } },
+      },
+      animation: {
+        flicker:'flicker .45s steps(2,end) infinite',
+        bob:'bob 3.2s ease-in-out infinite',
+        beat:'beat 1s ease-in-out infinite',
+        sheen:'sheen 1.6s linear infinite',
+        mayhem:'mayhem 8s linear infinite',
+        'rise-in':'rise-in .22s cubic-bezier(.22,1,.36,1) both',
+        'pop-in':'pop-in .36s cubic-bezier(.34,1.56,.64,1) both',
+        'heat-fade':'heat-fade 1.2s linear forwards',
+        shake:'shake .32s cubic-bezier(.65,0,.35,1)',
+        spin12:'spin12 12s linear infinite',
+      },
+      maxWidth: { app:'1440px', prose2:'62ch' },
+    },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require('tailwindcss-animate')],
 };

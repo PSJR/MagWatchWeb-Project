@@ -131,7 +131,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
-    return {"message": "MagWatchWeb API - Streaming de Torrents"}
+    return {"message": "spark.fun API", "chain_id": 4663, "chain": "Robinhood Chain"}
 
 @api_router.post("/auth/register", response_model=Token)
 async def register(user_data: UserCreate):
@@ -240,8 +240,33 @@ async def get_history(
     
     return history_items
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# spark.fun — token launchpad on Robinhood Chain (chain 4663)
+# Mounted under /api/sf; see backend/sparkfun/ and design/ for the spec.
+# ---------------------------------------------------------------------------
+from sparkfun.routes import router as sparkfun_router, bind as sparkfun_bind, ensure_indexes
+
+sparkfun_bind(db)
+api_router.include_router(sparkfun_router)
+
 # Include the router in the main app
 app.include_router(api_router)
+
+
+@app.on_event("startup")
+async def startup_sparkfun():
+    try:
+        await ensure_indexes()
+        logger.info("spark.fun indexes ready")
+    except Exception as exc:  # a slow/unavailable Mongo must not block boot
+        logger.warning("spark.fun index setup deferred: %s", exc)
 
 app.add_middleware(
     CORSMiddleware,
@@ -250,13 +275,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

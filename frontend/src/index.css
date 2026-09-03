@@ -1,113 +1,203 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+/* spark.fun — design tokens
+   Source of truth: /design/01-color.md, /design/03-design-tokens.md
+   Do not invent values here; every token below is specified in those docs. */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  :root {
+    /* ---- primitives ---- */
+    --ember-50:#FFF3E8;  --ember-100:#FFE3CC; --ember-200:#FFC79B; --ember-300:#FFAC6E;
+    --ember-400:#FF9350; --ember-500:#FF7A2F; --ember-600:#F05F14; --ember-700:#C6480B;
+    --ember-800:#9A3809; --ember-900:#6E2707;
+
+    --cream-50:#FFFBF4; --cream-100:#FFF4E6; --cream-200:#FDE9D3;
+    --sand-300:#F3D9BE;  --sand-400:#E7C6A4;  --clay-500:#C9A484;
+    --cocoa-600:#8A6A55; --cocoa-700:#6B4F3E; --cocoa-800:#4A362B; --cocoa-900:#2E2019;
+
+    --mint-50:#EAFBF3;  --mint-100:#CDF3E2; --mint-300:#9BE7C4;
+    --mint-500:#34C98A; --mint-600:#16A971; --mint-800:#0A6B48;
+
+    --coral-50:#FFF0ED;  --coral-100:#FFDCD5; --coral-300:#FFB3A7;
+    --coral-500:#FF6B5A; --coral-600:#EE4F3D; --coral-800:#A82F21;
+
+    --wild-100:#EFE7FF; --wild-300:#C7B0FF; --wild-500:#8B6BFF;
+    --wild-600:#6F4BF0; --wild-800:#4423B8; --magma-500:#FF5FA2;
+
+    --gold-100:#FFF2D1; --gold-300:#FFE09A; --gold-500:#FFC24D;
+    --gold-600:#E9A62B; --gold-800:#8F5F06;
+
+    --orbit-100:#D7F5F3; --orbit-300:#8FE2DC; --orbit-500:#38C6C0; --orbit-700:#0E7F7B;
+
+    --guava-100:#FFE4EC; --guava-300:#FFC0CF; --guava-500:#FF7FA3; --guava-700:#C93E68;
+
+    --ash-100:#EDE8E4; --ash-400:#B4A9A2; --ash-600:#7E736D;
+
+    /* ---- semantic (light) ---- */
+    --bg-canvas:var(--cream-50);
+    --bg-canvas-glow:radial-gradient(1200px 600px at 50% -10%, #FFE9D0 0%, rgba(255,251,244,0) 62%);
+    --bg-surface:var(--cream-100);
+    --bg-raised:#FFFFFF;
+    --bg-sunken:var(--cream-200);
+    --glass-tint:rgba(255,247,236,.62);
+    --glass-border:1px solid rgba(255,255,255,.55);
+
+    --border-subtle:var(--sand-300);
+    --border-strong:var(--sand-400);
+
+    --text-primary:var(--cocoa-900);
+    --text-secondary:var(--cocoa-600);
+    --text-body:var(--cocoa-800);
+    --text-on-primary:var(--cocoa-900);
+
+    --accent:var(--ember-500);
+    --accent-deep:var(--ember-600);
+    --accent-soft:var(--ember-100);
+    --accent-link:var(--ember-700);
+
+    --buy:var(--mint-600);        --buy-lip:#0E8659;   --buy-text:var(--mint-800);
+    --sell:var(--coral-600);      --sell-lip:#C33A29;  --sell-text:var(--coral-800);
+    --mayhem:var(--wild-500);     --mayhem-lip:#5C34D6;
+    --graduated:var(--gold-500);
+    --chain:var(--orbit-500);
+
+    /* ---- shadows (cocoa-tinted, never grey) ---- */
+    --shadow-xs:0 1px 2px rgba(74,54,43,.06);
+    --shadow-sm:0 2px 6px rgba(74,54,43,.08);
+    --shadow-md:0 6px 16px -4px rgba(74,54,43,.12), 0 2px 4px rgba(74,54,43,.06);
+    --shadow-lg:0 16px 32px -12px rgba(74,54,43,.18), 0 4px 8px rgba(74,54,43,.06);
+    --shadow-xl:0 32px 64px -24px rgba(74,54,43,.24), 0 8px 16px rgba(74,54,43,.08);
+    --shadow-inner-warm:inset 0 2px 4px rgba(74,54,43,.06);
+    --ring-hairline:inset 0 0 0 1px rgba(74,54,43,.10);
+    --glow-ember:0 0 0 4px rgba(255,122,47,.18), 0 10px 28px -10px rgba(255,122,47,.55);
+    --glow-mint:0 0 0 4px rgba(52,201,138,.18), 0 10px 28px -10px rgba(22,169,113,.5);
+    --glow-mayhem:0 0 0 4px rgba(139,107,255,.22), 0 12px 32px -10px rgba(139,107,255,.6);
+    --glow-gold:0 0 0 5px rgba(255,194,77,.25), 0 16px 40px -12px rgba(233,166,43,.6);
+  }
+
+  /* ---- Night Hearth: the same cabin, at night. Never black. ---- */
+  .dark {
+    --bg-canvas:#16110E;
+    --bg-canvas-glow:radial-gradient(1000px 500px at 50% -5%, rgba(58,36,20,.5) 0%, rgba(22,17,14,0) 70%);
+    --bg-surface:#1F1814;
+    --bg-raised:#2B211B;
+    --bg-sunken:#120E0B;
+    --glass-tint:rgba(43,33,27,.66);
+    --glass-border:1px solid rgba(255,220,180,.10);
+
+    --border-subtle:#3A2C24;
+    --border-strong:#4C392E;
+
+    --text-primary:#FFF1DF;
+    --text-secondary:#B79C89;
+    --text-body:#EBD8C4;
+    --text-on-primary:#2E2019;
+
+    --accent:#FF8F4A;
+    --accent-deep:#E0651A;
+    --accent-soft:#3B2415;
+    --accent-link:#FFB07A;
+
+    --ember-100:#3B2415; --ember-300:#8A4F22;
+    --mint-100:#123528;  --mint-300:#1C5B44;  --mint-500:#3FD79A; --mint-600:#28BE83; --mint-800:#7FE9BF;
+    --coral-100:#3A1D17; --coral-300:#7A3226; --coral-500:#FF7F6D; --coral-600:#F0604D; --coral-800:#FFA495;
+    --wild-100:#241A3F;  --wild-500:#A98CFF;  --wild-800:#CDB9FF;
+    --gold-100:#3A2C0D;  --gold-500:#FFD166;  --gold-800:#FFDF9B;
+    --orbit-100:#0E2E2D; --orbit-300:#2A6F6C; --orbit-500:#5CD9D3; --orbit-700:#8FE2DC;
+    --guava-100:#3A1F29; --guava-500:#FF9CB8;
+    --ash-100:#2A2521;   --ash-400:#6E635C;   --ash-600:#9A8D86;
+
+    --buy:#28BE83;   --buy-lip:#12704F;  --buy-text:#7FE9BF;
+    --sell:#F0604D;  --sell-lip:#9E3323; --sell-text:#FFA495;
+
+    --ring-hairline:inset 0 0 0 1px rgba(255,225,190,.12);
+    --shadow-xs:0 1px 2px rgba(0,0,0,.35);
+    --shadow-sm:0 2px 8px rgba(0,0,0,.40);
+    --shadow-md:0 8px 20px -6px rgba(0,0,0,.55);
+    --shadow-lg:0 22px 44px -18px rgba(0,0,0,.65);
+    --shadow-xl:0 34px 68px -26px rgba(0,0,0,.75);
+    --shadow-inner-warm:inset 0 2px 4px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background-color: var(--bg-canvas);
+    background-image: var(--bg-canvas-glow);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Paper-grain overlay — the detail that stops the UI reading as flat vector. */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 1;
+    pointer-events: none;
+    opacity: .03;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .dark body::after { mix-blend-mode: screen; opacity: .04; }
+
+  h1, h2, h3, h4 { font-family: 'Fredoka', 'Baloo 2', system-ui, sans-serif; font-weight: 600; margin: 0; text-wrap: balance; }
+  a { color: var(--accent-link); }
+
+  :focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection { background: var(--ember-200); color: var(--cocoa-900); }
 }
 
-body {
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: #0a0a0f;
-  color: #f1f5f9;
-}
+@layer components {
+  /* Tabular figures are a requirement, not a preference: without them a price
+     ticking at 100ms shakes the layout dozens of times per second. */
+  .num { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .disp { font-family: 'Fredoka', 'Baloo 2', system-ui, sans-serif; }
+  .hand { font-family: 'Caveat', cursive; }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
+  .overline {
+    font-size: 11px; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--text-secondary);
+  }
 
-.App {
-  min-height: 100vh;
+  .glass {
+    background: var(--glass-tint);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: var(--glass-border);
+  }
+
+  .hairline { box-shadow: var(--ring-hairline); }
 }
 
 @layer utilities {
-  .animate-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
+  .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
 
-  .slide-in-from-bottom-5 {
-    animation: slideInFromBottom 0.4s ease-out;
-  }
-
-  .fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-
-  .zoom-in-95 {
-    animation: zoomIn 0.2s ease-out;
-  }
+  .safe-b { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+/* Every ambient loop pauses for reduced motion; nothing functional is lost. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
   }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideInFromBottom {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes zoomIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-input[type="range"]::-webkit-slider-track {
-  background: rgba(255, 255, 255, 0.2);
-  height: 4px;
-  border-radius: 2px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  background: #3b82f6;
-  height: 16px;
-  width: 16px;
-  border-radius: 50%;
-  margin-top: -6px;
-}
-
-input[type="range"]::-moz-range-track {
-  background: rgba(255, 255, 255, 0.2);
-  height: 4px;
-  border-radius: 2px;
-}
-
-input[type="range"]::-moz-range-thumb {
-  background: #3b82f6;
-  height: 16px;
-  width: 16px;
-  border-radius: 50%;
-  border: none;
 }

@@ -126,7 +126,10 @@ score = 0.45 × log10(volume_total_usd)
       + 0.35 × taxa_de_graduacao
       + 0.20 × log10(seguidores + 1)
 ```
-Faixas: Bronze 0–1.9 · Silver 2.0–3.4 · Gold 3.5–4.9 · Platinum 5.0–6.4 · Diamond 6.5+.
+Faixas: Bronze <2.6 · Silver 2.6–3.19 · Gold 3.2–3.79 · Platinum 3.8–4.39 · Diamond 4.4+.
+As faixas são calibradas contra a fórmula, não escolhidas redondas: os termos
+logarítmicos comprimem muito, então a faixa útil real vai de ~1.5 a ~5.0.
+Referências: $5K de volume ≈ 1.7 · $250K/20%/40 seg. ≈ 2.8 · $4M/38%/1.3K ≈ 3.7 · $80M/60%/20K ≈ 4.6.
 A barra de progresso para o próximo nível é sempre visível, com o "quanto falta"
 em linguagem concreta: *"faltam $180K de volume ou 2 graduações"*.
 
