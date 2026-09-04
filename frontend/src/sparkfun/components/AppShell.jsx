@@ -264,8 +264,8 @@ function WalletModal({ onClose }) {
         <Field
           type="email"
           placeholder="voce@email.com"
-          label="Sign in with email"
-          hint="We make a wallet for you."
+          label="Browse with email"
+          hint="Gives you a profile to browse, favourite and chat. Trading needs a wallet."
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />

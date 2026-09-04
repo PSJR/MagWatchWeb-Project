@@ -100,7 +100,13 @@ Honestidade sobre o estado da plataforma:
 2. **Feed de preço ETH/USD.** Tokens pareados com ETH têm market cap, volume e
    fees denominados em ETH e são exibidos assim. Totais que somam pares
    diferentes assumem ETH e ficam ligeiramente altos até o feed existir.
-3. **Upload de mídia.** A criação aceita URL de imagem; falta o storage.
+3. **Carteiras embutidas.** A plataforma **não cria carteiras.** O login por
+   e-mail dá um perfil para navegar, favoritar e comentar — nada mais, porque
+   não há chave. Negociar e criar token exigem uma carteira que assine. Um
+   login estilo Privy/Turnkey, com chave gerada e recuperável, significa
+   custodiar chave de usuário: é decisão de produto e de conformidade, não um
+   detalhe de implementação.
+4. **Upload de mídia.** A criação aceita URL de imagem; falta o storage.
 4. **Creator Room, Share Card, badges dinâmicos e leaderboard na UI** — a API
    já expõe leaderboard e badges; as telas ainda não foram construídas.
 5. **Rate limiting e moderação** nos comentários.

@@ -18,7 +18,7 @@ const BLANK = {
 
 export default function Create() {
   const navigate = useNavigate();
-  const { signedIn, connect, user, address, getWalletClient, wrongNetwork, switchToChain } = useWallet();
+  const { connected, connect, user, address, getWalletClient, wrongNetwork, switchToChain } = useWallet();
   const { burst } = useCelebration();
   const buttonRef = useRef(null);
 
@@ -71,7 +71,9 @@ export default function Create() {
 
   const submit = useCallback(async () => {
     setError(null);
-    if (!signedIn) { await connect().catch((e) => setError(e.message)); return; }
+    // Launching is an on-chain transaction, so it needs a wallet — an
+    // email-only profile cannot sign it.
+    if (!connected) { await connect().catch((e) => setError(e.message)); return; }
     if (wrongNetwork) { await switchToChain().catch((e) => setError(e.message)); return; }
 
     const walletClient = getWalletClient();
@@ -111,7 +113,7 @@ export default function Create() {
       setError(err.message);
       setBusy(false);
     }
-  }, [signedIn, connect, wrongNetwork, switchToChain, getWalletClient, address, form, burst, navigate]);
+  }, [connected, connect, wrongNetwork, switchToChain, getWalletClient, address, form, burst, navigate]);
 
   return (
     <div className="pt-6 md:pt-10">
@@ -220,7 +222,7 @@ export default function Create() {
             disabled={!canSubmit || !isDeployed()}
             onClick={submit} className="min-w-[220px]"
           >
-            🔥 {!signedIn ? 'Connect and light' : wrongNetwork ? 'Switch network' : 'Light it'}
+            🔥 {!connected ? 'Connect wallet to light' : wrongNetwork ? 'Switch network' : 'Light it'}
           </Button>
           <span className="text-caption text-ink3">
             Cost: just gas ⛽ ~$0.001

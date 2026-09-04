@@ -20,7 +20,7 @@ const SLIPPAGES = [0.005, 0.01, 0.03];
  * blob, and the slippage floor is derived from the same preview.
  */
 export default function TradePanel({ token, curve, onTraded, className = '' }) {
-  const { signedIn, address, connect, balance, getWalletClient, wrongNetwork, switchToChain } = useWallet();
+  const { connected, signedIn, address, connect, balance, getWalletClient, wrongNetwork, switchToChain } = useWallet();
   const { burst, comet } = useCelebration();
   const buttonRef = useRef(null);
 
@@ -68,7 +68,9 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
 
   const submit = async () => {
     setError(null);
-    if (!signedIn) { await connect().catch((e) => setError(e.message)); return; }
+    // `connected` means a wallet is attached. An email-only profile is signed
+    // in but has no key and cannot sign anything, so it must connect one.
+    if (!connected) { await connect().catch((e) => setError(e.message)); return; }
     if (wrongNetwork) { await switchToChain().catch((e) => setError(e.message)); return; }
     if (!preview || amountUnits <= 0n) return;
 
@@ -233,15 +235,21 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
       {error && (
         <p className="text-caption text-coral-800 bg-coral-100 rounded-md px-3 py-2 mb-3">{error}</p>
       )}
+      {signedIn && !connected && (
+        <p className="text-caption text-ember-800 bg-ember-100 rounded-md px-3 py-2 mb-3">
+          Your email profile can browse and chat, but trading is signed by a wallet.
+          Connect one and it keeps the same profile.
+        </p>
+      )}
 
       <Button
         ref={buttonRef} full size="xl" variant={isBuy ? 'buy' : 'sell'}
         loading={busy} success={done}
-        disabled={signedIn && !wrongNetwork && (!preview || amountUnits <= 0n)}
+        disabled={connected && !wrongNetwork && (!preview || amountUnits <= 0n)}
         onClick={submit}
       >
         {done ? '✓ Done'
-          : !signedIn ? 'Connect wallet'
+          : !connected ? 'Connect wallet'
           : wrongNetwork ? 'Switch to Robinhood Chain'
           : isBuy ? `Buy for ${money(amountUnits, pair)}`
           : `Sell ${tokenAmount(amountUnits)} $${token.ticker}`}
