@@ -23,7 +23,10 @@ ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL \
     REACT_APP_SPARK_FACTORY=$REACT_APP_SPARK_FACTORY \
     REACT_APP_WALLETCONNECT_PROJECT_ID=$REACT_APP_WALLETCONNECT_PROJECT_ID \
     REACT_APP_USDC_ADDRESS=$REACT_APP_USDC_ADDRESS \
-    CI=false
+    CI=false \
+    # Measured peak is ~2 GB. Capping the heap makes the build fail
+    # predictably rather than thrash until the OOM killer arrives.
+    NODE_OPTIONS=--max-old-space-size=2048
 
 RUN yarn build
 

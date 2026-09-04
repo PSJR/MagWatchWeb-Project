@@ -4,26 +4,48 @@ Verified against `srv1505182.hstgr.cloud` (Hostinger VPS, CyberPanel +
 OpenLiteSpeed on 80/443). The stack runs in Docker on its own port and does
 not touch the existing CyberPanel setup.
 
-## One command
+## Getting the code onto the server
 
-SSH in and run:
+**This repository is private.** An anonymous `curl` of a raw URL returns 404,
+and so does an anonymous `git clone` — GitHub answers 404 rather than 403 for
+private paths, which makes it look like a broken link.
+
+So pass a token. Create one at **github.com/settings/tokens** with `repo`
+scope (a fine-grained token with read access to this repository also works):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/PSJR/MagWatchWeb-Project/claude/sparkfun-design-system-89hs11/deploy/install.sh | sudo bash
-```
-
-Or, if you would rather read it first:
-
-```bash
+export GH_TOKEN=github_pat_...
 git clone -b claude/sparkfun-design-system-89hs11 \
-  https://github.com/PSJR/MagWatchWeb-Project.git /opt/sparkfun
+  "https://$GH_TOKEN@github.com/PSJR/MagWatchWeb-Project.git" /opt/sparkfun
 cd /opt/sparkfun
-less deploy/install.sh
+less deploy/install.sh        # worth reading before running it as root
 sudo bash deploy/install.sh
 ```
 
-It installs Docker if missing, writes `deploy/.env` with a generated
-`SECRET_KEY`, builds the images and starts three containers:
+The installer also accepts the token directly, if you would rather it did the
+clone:
+
+```bash
+GH_TOKEN=github_pat_... sudo -E bash deploy/install.sh
+```
+
+`sudo -E` matters — without it the token does not survive into the sudo
+environment.
+
+> Do not pipe this into `sudo bash` from a URL. It runs as root on your
+> server; read it first. The convenience is not worth the habit.
+
+## What the installer does
+
+Before touching anything it checks free disk, checks that the port is free,
+and — because the React build peaks at about **2 GB of RSS** — adds a 2 GB
+swapfile when RAM plus swap is under 3 GB. On a 1 or 2 GB VPS with CyberPanel
+already resident, the build is otherwise OOM-killed and Docker reports a bare
+`exit 137`.
+
+It detects the package manager (`dnf`, `yum` or `apt-get`), installs Docker if
+missing, writes `deploy/.env` with a generated `SECRET_KEY`, builds the images
+and starts three containers:
 
 | service | what it is | published |
 |---|---|---|
