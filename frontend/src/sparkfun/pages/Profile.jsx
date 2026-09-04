@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import TokenCard from '../components/TokenCard';
+import WalletCard from '../components/WalletCard';
 import LiveFeed from '../components/LiveFeed';
 import { Button, CountUp, EmptyState, ErrorNote, Skeleton, cx } from '../components/ui';
 import { Pip } from '../components/mascots';
@@ -50,7 +51,7 @@ const TABS = [
 /** Renders both /me (private) and /u/:handle (public) — one component, two lenses. */
 export default function Profile({ own = false }) {
   const { handle: routeHandle } = useParams();
-  const { user, connect } = useWallet();
+  const { user, openWalletDialog } = useWallet();
   const handle = own ? user?.handle : routeHandle;
 
   const [tab, setTab] = useState('portfolio');
@@ -85,7 +86,7 @@ export default function Profile({ own = false }) {
         <EmptyState
           title="Sign in to see your profile"
           body="Your wallet, your portfolio and your campfire live here."
-          action={<Button onClick={() => connect().catch(() => {})}>Connect wallet</Button>}
+          action={<Button onClick={openWalletDialog}>Connect wallet</Button>}
         />
       </div>
     );
@@ -207,6 +208,8 @@ export default function Profile({ own = false }) {
           {tab === 'history' && <History rows={history.data} />}
           {tab === 'favorites' && <Favorites rows={favorites.data} />}
           {tab === 'activity' && <Activity rows={activity.data} />}
+
+          <WalletCard />
         </>
       )}
 

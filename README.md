@@ -19,8 +19,8 @@ Orbit · gas em ETH · ~100 ms de block time · Uniswap V3 nativo).
 |---|---|
 | Frontend | React 19 · CRA/craco · Tailwind · Recharts · react-router 7 |
 | Backend | FastAPI · Motor (MongoDB) · WebSocket |
-| Auth | Nonce assinado pela carteira (EIP-191) + sessão JWT; e-mail opcional |
-| Carteira | EIP-1193 direto no provider injetado |
+| Auth | Nonce assinado pela carteira (EIP-191) + sessão JWT |
+| Carteira | EIP-1193 no provider injetado (padrão) ou carteira criada no navegador |
 
 ## Rodando
 
@@ -93,23 +93,17 @@ picotado. A fluidez vem da interpolação, não da frequência de render.
 
 Honestidade sobre o estado da plataforma:
 
-1. **Contratos on-chain.** Esta é a camada de aplicação. O `address` de um
-   token é um identificador determinístico, não um contrato deployado; trades
-   liquidam no banco. Faltam os contratos da launchpad (curva, graduação,
-   trava de liquidez no Uniswap V3) e o indexer que devolve o estado on-chain.
-2. **Feed de preço ETH/USD.** Tokens pareados com ETH têm market cap, volume e
+1. **Feed de preço ETH/USD.** Tokens pareados com ETH têm market cap, volume e
    fees denominados em ETH e são exibidos assim. Totais que somam pares
    diferentes assumem ETH e ficam ligeiramente altos até o feed existir.
-3. **Carteiras embutidas.** A plataforma **não cria carteiras.** O login por
-   e-mail dá um perfil para navegar, favoritar e comentar — nada mais, porque
-   não há chave. Negociar e criar token exigem uma carteira que assine. Um
-   login estilo Privy/Turnkey, com chave gerada e recuperável, significa
-   custodiar chave de usuário: é decisão de produto e de conformidade, não um
-   detalhe de implementação.
-4. **Upload de mídia.** A criação aceita URL de imagem; falta o storage.
+2. **Recuperação de conta.** A carteira criada no navegador é não-custodial: a
+   frase de 12 palavras é gerada e cifrada no cliente (PBKDF2-SHA256 600k →
+   AES-GCM-256) e o servidor só aprende o endereço, depois de a carteira provar
+   posse da chave assinando o nonce. Isso é deliberado — o backend não pode
+   mover fundo de ninguém — e o preço é que não existe "esqueci minha senha".
+   Perder senha e frase perde a carteira. Custódia real (Privy/Turnkey) é
+   decisão de produto e de conformidade, não um detalhe de implementação.
+3. **Upload de mídia.** A criação aceita URL de imagem; falta o storage.
 4. **Creator Room, Share Card, badges dinâmicos e leaderboard na UI** — a API
    já expõe leaderboard e badges; as telas ainda não foram construídas.
 5. **Rate limiting e moderação** nos comentários.
-
-O badge "Made with Emergent" em `frontend/public/index.html` é da plataforma de
-hospedagem, não do produto.

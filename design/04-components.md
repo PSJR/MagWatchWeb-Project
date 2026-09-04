@@ -389,14 +389,30 @@ No clique: o botão comprime, vira o "riscar de um fósforo" (a chama corre da
 esquerda para a direita), e explode na sequência de nascimento do token
 (`06-motion.md § 5`).
 
-### D6. WalletConnect (RainbowKit-style)
+### D6. WalletDialog
 
-Modal com carteiras em cards grandes com ícone 48, hover que levanta.
-Aba secundária: **e-mail / social** (estilo Privy) com campo grande e
-"enviamos um código". Ao conectar: o avatar desce no header com `spring-bouncy`,
-o ChainBadge acende, e um toast diz "Bem-vindo à casa 🏠".
-Se a rede estiver errada: banner âmbar (não vermelho) — "Você está em outra
-casa. Trocar para a Robinhood Chain?" + botão que troca em 1 clique.
+Um caminho principal e um alternativo, nunca uma grade de logos: a carteira do
+navegador é o botão grande no topo, porque quem já tem carteira já tem onde
+guardar a chave. Abaixo, separado por um "ou": **entrar com e-mail**, e aí o
+site cria a carteira no próprio navegador.
+
+O passo da frase de recuperação é o único momento hostil do produto, e é de
+propósito. Doze palavras em grade de 3 colunas, numeradas, no fundo `sunken`;
+o Ember aparece `cheer` mas o texto não faz graça — "estas palavras **são** a
+sua carteira", "ninguém, nem nós, consegue recuperá-la". O modal não fecha no
+Esc nem no clique fora enquanto a frase está na tela, e o botão de continuar
+só acende depois do check de "escrevi num papel". Copiar é possível e vem com
+o aviso de que a área de transferência não é lugar de guardar.
+
+Voltando: quem já criou carteira aqui cai direto no passo de **destravar**
+(senha), com o endereço truncado à mostra para reconhecer de quem é. Um link
+discreto abre **restaurar por frase**.
+
+Ao conectar: o avatar desce no header com `spring-bouncy`, o ChainBadge acende,
+e um toast diz "Bem-vindo à casa 🏠". Se a rede estiver errada — só possível
+com carteira de extensão, a criada aqui é presa à chain — banner âmbar (não
+vermelho): "Você está em outra casa. Trocar para a Robinhood Chain?" + botão
+que troca em 1 clique.
 
 ### D7. FilterBar (Explore)
 

@@ -52,9 +52,9 @@ let webpackConfig = {
         ],
       };
 
-      // Several @walletconnect packages ship source maps that point at .ts
-      // files they do not publish, which makes source-map-loader shout on every
-      // build. Our own sources still get maps; third-party ones are skipped.
+      // Several dependencies ship source maps pointing at .ts files they do
+      // not publish, which makes source-map-loader shout on every build. Our
+      // own sources still get maps; third-party ones are skipped.
       // `exclude` may already be a RegExp, an array, or absent.
       const skipNodeModules = (rule) => {
         const existing = rule.exclude;

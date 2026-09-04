@@ -50,8 +50,6 @@ async function main() {
     `REACT_APP_CHAIN_ID=${chainId}`,
     "REACT_APP_RPC_URL=http://127.0.0.1:8545",
     `REACT_APP_SPARK_FACTORY=${address}`,
-    "# Free at dashboard.reown.com. Without it, use 'carteira do navegador'.",
-    `REACT_APP_WALLETCONNECT_PROJECT_ID=${process.env.REACT_APP_WALLETCONNECT_PROJECT_ID || ""}`,
     "",
   ]);
 

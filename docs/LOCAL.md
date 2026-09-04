@@ -14,8 +14,8 @@ compra, vende e gradua de verdade, com ETH de brinquedo.
 | Docker | qualquer | só para o MongoDB |
 | Yarn | 1.x | o projeto usa `yarn.lock` |
 
-Uma carteira de navegador (MetaMask, Rabby) ajuda para testar sem
-WalletConnect.
+Uma carteira de navegador (MetaMask, Rabby) ajuda para testar. Sem ela dá
+para entrar com e-mail — o site cria uma carteira no próprio navegador.
 
 ## Clonar e instalar
 
@@ -61,10 +61,9 @@ A chain local é a 31337, não a 4663. Adicione manualmente:
 Importe a chave que o `make deploy` imprimiu. Ela é a chave de teste pública
 do Hardhat — **nunca** use em rede real.
 
-Sem `REACT_APP_WALLETCONNECT_PROJECT_ID`, o botão do WalletConnect fica
-desabilitado com a explicação na tela; use "carteira do navegador". Para
-habilitar, pegue um Project ID grátis em `dashboard.reown.com` e coloque em
-`frontend/.env.local`.
+Se preferir não instalar extensão nenhuma, use "Use an email and create a
+wallet": a chave nasce e fica cifrada no navegador. Para gastar gás nela,
+mande ETH do node local para o endereço que a tela mostrar.
 
 ## Testes
 

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import ChainBadge, { GasPill } from './ChainBadge';
-import { Button, Field, cx } from './ui';
+import WalletDialog from './WalletDialog';
+import { Button, cx } from './ui';
 import { Ember, Pip, SparkLogo } from './mascots';
 import { useWallet } from '../hooks/useWallet';
 import { truncAddress } from '../lib/format';
-import { CHAIN, CHAIN_ID } from '../lib/chain';
+import { CHAIN } from '../lib/chain';
 
 const NAV = [
   { to: '/', label: 'Home', icon: '⌂', end: true },
@@ -16,14 +17,14 @@ const NAV = [
 ];
 
 export default function AppShell({ children }) {
-  const [walletOpen, setWalletOpen] = useState(false);
+  const { dialogOpen, openWalletDialog, closeWalletDialog } = useWallet();
   const { pathname } = useLocation();
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header onConnect={() => setWalletOpen(true)} />
+      <Header onConnect={openWalletDialog} />
       <NetworkBanner />
 
       <div className="flex-1 w-full max-w-app mx-auto flex gap-8 px-4 md:px-8 lg:px-10">
@@ -34,13 +35,13 @@ export default function AppShell({ children }) {
       </div>
 
       <BottomNav />
-      {walletOpen && <WalletModal onClose={() => setWalletOpen(false)} />}
+      {dialogOpen && <WalletDialog onClose={closeWalletDialog} />}
     </div>
   );
 }
 
 function Header({ onConnect }) {
-  const { user, address, disconnect, connector } = useWallet();
+  const { user, address, disconnect, connector, needsUnlock } = useWallet();
   const [small, setSmall] = useState(false);
 
   useEffect(() => {
@@ -63,10 +64,15 @@ function Header({ onConnect }) {
         <div className="ml-auto flex items-center gap-2">
           <ChainBadge className="hidden md:inline-flex" />
           <GasPill className="hidden lg:inline-flex" />
+          {/* A locked wallet still has a session, so the account chip alone would
+              leave signing out as the only action. Unlocking comes first. */}
+          {needsUnlock && (
+            <Button size="md" onClick={onConnect}>Unlock wallet</Button>
+          )}
           {user ? (
             <button
               onClick={disconnect}
-              title={`Sign out · connected via ${connector === 'injected' ? 'browser wallet' : 'WalletConnect'}`}
+              title={`Sign out · ${connector === 'injected' ? 'browser wallet' : 'wallet created here'}`}
               className="flex items-center gap-2 rounded-pill bg-surface shadow-hairline pl-1 pr-3 py-1
                          hover:shadow-sm transition-shadow duration-fast"
             >
@@ -75,7 +81,7 @@ function Header({ onConnect }) {
                 {address ? truncAddress(address) : `@${user.handle}`}
               </span>
             </button>
-          ) : (
+          ) : !needsUnlock && (
             <Button size="md" onClick={onConnect}>Connect wallet</Button>
           )}
         </div>
@@ -172,118 +178,5 @@ function BottomNav() {
         ))}
       </ul>
     </nav>
-  );
-}
-
-function WalletModal({ onClose }) {
-  const {
-    connect, connectEmail, connecting, error,
-    hasInjected, walletConnectConfigured,
-  } = useWallet();
-  const [email, setEmail] = useState('');
-  const [pending, setPending] = useState(null);
-
-  const run = (kind) => async () => {
-    setPending(kind);
-    try {
-      await connect(kind);
-      onClose();
-    } catch {
-      /* the message is rendered from the hook's error state */
-    } finally {
-      setPending(null);
-    }
-  };
-
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-[500] grid place-items-end sm:place-items-center p-0 sm:p-6
-                 bg-[rgba(46,32,25,.42)] backdrop-blur-md animate-rise-in"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Connect wallet"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-[420px] bg-raised rounded-t-3xl sm:rounded-2xl p-6 shadow-xl animate-pop-in"
-      >
-        <div className="flex items-center gap-3 mb-1">
-          <Ember size={44} mood="happy" className="animate-bob" />
-          <div>
-            <h2 className="disp text-heading-lg">Connect wallet</h2>
-            <p className="text-caption text-ink3">{CHAIN.name} · {CHAIN_ID}</p>
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-2">
-          <Button
-            full size="xl"
-            loading={pending === 'walletconnect'}
-            disabled={!walletConnectConfigured || connecting}
-            onClick={run('walletconnect')}
-          >
-            Connect with WalletConnect
-          </Button>
-          <p className="text-caption text-ink3 text-center">
-            Works with any wallet: QR on desktop, deep link on mobile.
-          </p>
-
-          {!walletConnectConfigured && (
-            <p className="text-caption text-ember-800 bg-ember-100 rounded-md px-3 py-2">
-              WalletConnect is not configured in this build. Set
-              <code className="num mx-1">REACT_APP_WALLETCONNECT_PROJECT_ID</code>
-              (free at dashboard.reown.com).
-            </p>
-          )}
-
-          {hasInjected && (
-            <Button
-              full size="lg" variant="secondary"
-              loading={pending === 'injected'}
-              disabled={connecting}
-              onClick={run('injected')}
-            >
-              Use the browser wallet
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3 my-5">
-          <span className="flex-1 h-px bg-subtle" />
-          <span className="text-caption text-ink3">or</span>
-          <span className="flex-1 h-px bg-subtle" />
-        </div>
-
-        <Field
-          type="email"
-          placeholder="voce@email.com"
-          label="Browse with email"
-          hint="Gives you a profile to browse, favourite and chat. Trading needs a wallet."
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Button
-          full variant="secondary" size="lg" disabled={!email.includes('@')} loading={connecting}
-          onClick={() => connectEmail(email).then(onClose).catch(() => {})}
-        >
-          Send
-        </Button>
-
-        {error && <p className="text-caption text-coral-800 mt-3 text-center">{error}</p>}
-
-        <p className="text-caption text-ink3 mt-5 leading-relaxed">
-          You keep custody: the signature only proves who you are and authorises
-          no transaction. Tokens created here carry no guarantee and no promise of
-          value. Most go to zero. We keep it fun — but the risk is real.
-        </p>
-      </div>
-    </div>
   );
 }

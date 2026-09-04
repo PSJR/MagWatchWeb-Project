@@ -88,6 +88,9 @@ export const api = {
   nonce: (address) => request(`/sf/auth/nonce${qs({ address })}`, { auth: false }),
   verify: (payload) => request('/sf/auth/verify', { method: 'POST', body: payload, auth: false }),
   guest: (payload) => request('/sf/auth/guest', { method: 'POST', body: payload, auth: false }),
+  // Attaches a browser-created wallet to the signed-in profile, proved by a
+  // signature rather than merely claimed.
+  linkWallet: (payload) => request('/sf/me/wallet', { method: 'POST', body: payload }),
   me: () => request('/sf/me'),
   updateMe: (patch) => request('/sf/me', { method: 'PATCH', body: patch }),
 

@@ -148,7 +148,7 @@ if [ ! -f deploy/.env ]; then
   sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$SECRET|" deploy/.env
   sed -i "s|^WEB_PORT=.*|WEB_PORT=$WEB_PORT|" deploy/.env
   echo "    a SECRET_KEY was generated for you"
-  echo "    set SPARK_FACTORY_ADDRESS and WALLETCONNECT_PROJECT_ID when you have them"
+  echo "    set SPARK_FACTORY_ADDRESS once the contracts are deployed"
 else
   log "Keeping the existing deploy/.env"
 fi

@@ -31,7 +31,6 @@
     "@radix-ui/react-toggle": "^1.1.6",
     "@radix-ui/react-toggle-group": "^1.1.7",
     "@radix-ui/react-tooltip": "^1.2.4",
-    "@walletconnect/ethereum-provider": "2",
     "axios": "^1.8.4",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
@@ -67,7 +66,8 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "test:wallet": "node scripts/test-embedded-wallet.mjs"
   },
   "browserslist": {
     "production": [

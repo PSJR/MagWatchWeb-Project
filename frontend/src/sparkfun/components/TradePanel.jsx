@@ -20,7 +20,10 @@ const SLIPPAGES = [0.005, 0.01, 0.03];
  * blob, and the slippage floor is derived from the same preview.
  */
 export default function TradePanel({ token, curve, onTraded, className = '' }) {
-  const { connected, signedIn, address, connect, balance, getWalletClient, wrongNetwork, switchToChain } = useWallet();
+  const {
+    connected, signedIn, address, connect, balance, getWalletClient, wrongNetwork, switchToChain,
+    needsUnlock, openWalletDialog,
+  } = useWallet();
   const { burst, comet } = useCelebration();
   const buttonRef = useRef(null);
 
@@ -68,6 +71,10 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
 
   const submit = async () => {
     setError(null);
+    // A wallet saved in this browser is not the same as no wallet: sending it
+    // to connect() would ask an extension that may not exist, when what it
+    // actually needs is the password.
+    if (needsUnlock) { openWalletDialog(); return; }
     // `connected` means a wallet is attached. An email-only profile is signed
     // in but has no key and cannot sign anything, so it must connect one.
     if (!connected) { await connect().catch((e) => setError(e.message)); return; }
@@ -235,7 +242,11 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
       {error && (
         <p className="text-caption text-coral-800 bg-coral-100 rounded-md px-3 py-2 mb-3">{error}</p>
       )}
-      {signedIn && !connected && (
+      {needsUnlock ? (
+        <p className="text-caption text-ember-800 bg-ember-100 rounded-md px-3 py-2 mb-3">
+          Your wallet is locked. Unlock it with your password to trade.
+        </p>
+      ) : signedIn && !connected && (
         <p className="text-caption text-ember-800 bg-ember-100 rounded-md px-3 py-2 mb-3">
           Your email profile can browse and chat, but trading is signed by a wallet.
           Connect one and it keeps the same profile.
@@ -249,6 +260,7 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
         onClick={submit}
       >
         {done ? '✓ Done'
+          : needsUnlock ? 'Unlock wallet'
           : !connected ? 'Connect wallet'
           : wrongNetwork ? 'Switch to Robinhood Chain'
           : isBuy ? `Buy for ${money(amountUnits, pair)}`

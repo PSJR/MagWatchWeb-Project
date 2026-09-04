@@ -253,6 +253,43 @@ async def auth_guest(payload: GuestIn) -> Any:
     return {"token": make_token(user["id"]), "user": public_user(user), "signature_verified": False}
 
 
+@router.post("/me/wallet", response_model=UserPublic)
+async def link_wallet(payload: VerifyIn, user: dict = Depends(current_user)) -> Any:
+    """Attaches a wallet address to the signed-in profile.
+
+    Used by the email flow: the browser creates a wallet, then proves it holds
+    the key by signing the nonce. The address is never taken on the client's
+    word — an unverified claim would let anyone attach someone else's address
+    to their own profile and inherit its history.
+    """
+    record = await db()[NONCES].find_one_and_delete(
+        {"address": payload.address.lower(), "nonce": payload.nonce}
+    )
+    if not record:
+        raise HTTPException(400, "That challenge expired. Try again.")
+
+    message = S.siwe_message(payload.address, payload.nonce)
+    if not S.verify_signature(payload.address, message, payload.signature):
+        if os.environ.get("SPARKFUN_REQUIRE_SIGNATURE", "true").lower() == "true":
+            raise HTTPException(401, "I could not verify that wallet's signature.")
+
+    address = payload.address.lower()
+    owner = await db()[USERS].find_one({"address": address}, {"_id": 0, "id": 1})
+    if owner and owner["id"] != user["id"]:
+        raise HTTPException(409, "That wallet is already on another profile.")
+
+    existing = user.get("address")
+    if existing and existing != address:
+        raise HTTPException(
+            409,
+            "This profile already has a wallet. Sign out and connect the other one instead.",
+        )
+
+    await db()[USERS].update_one({"id": user["id"]}, {"$set": {"address": address}})
+    fresh = await db()[USERS].find_one({"id": user["id"]}, {"_id": 0})
+    return public_user(fresh)
+
+
 @router.get("/me", response_model=UserPublic)
 async def me(user: dict = Depends(current_user)) -> Any:
     return public_user(user)

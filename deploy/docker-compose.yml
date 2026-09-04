@@ -58,7 +58,6 @@ services:
         REACT_APP_RPC_URL: ${SPARK_RPC_URL:-https://rpc.mainnet.chain.robinhood.com}
         REACT_APP_EXPLORER_URL: ${SPARK_EXPLORER_URL:-https://robinhoodchain.blockscout.com}
         REACT_APP_SPARK_FACTORY: ${SPARK_FACTORY_ADDRESS:-}
-        REACT_APP_WALLETCONNECT_PROJECT_ID: ${WALLETCONNECT_PROJECT_ID:-}
         REACT_APP_USDC_ADDRESS: ${USDC_ADDRESS:-}
     restart: unless-stopped
     depends_on:

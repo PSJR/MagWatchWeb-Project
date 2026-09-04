@@ -9,7 +9,7 @@
 #
 # Four terminals: chain, backend, web, and one for you.
 
-.PHONY: setup setup-contracts setup-backend setup-web mongo chain deploy backend web test test-contracts test-python clean
+.PHONY: setup setup-contracts setup-backend setup-web mongo chain deploy backend web test test-contracts test-python test-wallet clean
 
 setup: setup-contracts setup-backend setup-web
 	@echo ""
@@ -48,13 +48,17 @@ backend:
 web:
 	cd frontend && yarn start
 
-test: test-contracts test-python
+test: test-contracts test-python test-wallet
 
 test-contracts:
 	cd contracts && npx hardhat test
 
 test-python:
 	python3 -m pytest tests/ -q
+
+# Needs real WebCrypto, so it runs in Node rather than CRA's jsdom jest.
+test-wallet:
+	cd frontend && yarn test:wallet
 
 clean:
 	rm -rf frontend/build contracts/artifacts contracts/cache

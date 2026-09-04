@@ -57,8 +57,17 @@ export const publicClient = createPublicClient({
   transport: http(CHAIN.rpcUrls.default.http[0], { batch: true }),
 });
 
+/** Wallet client for an injected provider: the extension signs and broadcasts. */
 export function walletClientFrom(provider, account) {
   return createWalletClient({ account, chain: CHAIN, transport: custom(provider) });
+}
+
+/**
+ * Wallet client for the in-browser wallet: viem signs locally with the
+ * decrypted account and broadcasts over the same RPC the app reads from.
+ */
+export function localWalletClient(account) {
+  return createWalletClient({ account, chain: CHAIN, transport: http(CHAIN.rpcUrls.default.http[0]) });
 }
 
 export const explorer = {

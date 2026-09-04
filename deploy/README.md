@@ -107,8 +107,9 @@ The two values that matter:
 
 - `SPARK_FACTORY_ADDRESS` — from `npm run deploy:mainnet`. Empty means the
   app runs read-only and says so on the Create page instead of pretending.
-- `WALLETCONNECT_PROJECT_ID` — free at `dashboard.reown.com`. Empty disables
-  the WalletConnect button, with the reason shown in the connect dialog.
+Nothing else is needed to connect a wallet: the app uses whatever wallet the
+browser provides, and creates one in the browser for people who sign in with
+an email.
 
 Set `SPARK_DEPLOY_BLOCK` too, or the indexer scans from block 0 on a chain
 that is already past 53 million.
