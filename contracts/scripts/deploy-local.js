@@ -85,9 +85,9 @@ async function main() {
 
 async function seed(factory, creator, alice) {
   const tokens = [
-    { name: "Pizza da Meia-Noite", symbol: "PIZZA", mayhem: false, dev: "0.3", buy: "1.1" },
-    { name: "Caos Fofo", symbol: "MAYHEM", mayhem: true, dev: "0.1", buy: "2.5" },
-    { name: "Cobertorzinho", symbol: "COZY", mayhem: false, dev: "0.2", buy: "0.6" },
+    { name: "Midnight Pizza", symbol: "PIZZA", mayhem: false, dev: "0.3", buy: "1.1" },
+    { name: "Cute Chaos", symbol: "MAYHEM", mayhem: true, dev: "0.1", buy: "2.5" },
+    { name: "Little Blanket", symbol: "COZY", mayhem: false, dev: "0.2", buy: "0.6" },
   ];
 
   for (const t of tokens) {

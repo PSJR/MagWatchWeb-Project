@@ -7,7 +7,7 @@ import { money, relTime, tokenAmount } from '../lib/format';
  * The heat trail: each row lands with the direction's colour behind it and
  * fades to transparent over 1.2s, so a busy token visibly runs warm.
  */
-export default function LiveFeed({ trades = [], showToken = true, className = '', emptyLabel = 'Silêncio total por aqui.' }) {
+export default function LiveFeed({ trades = [], showToken = true, className = '', emptyLabel = 'Total silence in here.' }) {
   if (!trades.length) {
     return <p className={cx('text-caption text-ink3 py-6 text-center', className)}>{emptyLabel}</p>;
   }
@@ -31,7 +31,7 @@ export default function LiveFeed({ trades = [], showToken = true, className = ''
           <span className="min-w-0 flex-1 text-[13px]">
             <span className="text-ink font-semibold">@{t.handle}</span>{' '}
             <span className={t.side === 'buy' ? 'text-mint-800' : 'text-coral-800'}>
-              {t.side === 'buy' ? 'comprou' : 'vendeu'}
+              {t.side === 'buy' ? 'bought' : 'sold'}
             </span>{' '}
             {showToken && (
               <Link to={`/t/${t.token_address}`} className="disp text-ink hover:underline">

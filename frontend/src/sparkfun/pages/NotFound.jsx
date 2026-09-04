@@ -7,9 +7,9 @@ export default function NotFound() {
     <div className="pt-20">
       <EmptyState
         mood="carry"
-        title="Essa página não existe"
-        body="Mas a fogueira está acesa lá na home."
-        action={<Link to="/"><Button>Voltar para casa</Button></Link>}
+        title="This page does not exist"
+        body="But the campfire is still lit back home."
+        action={<Link to="/"><Button>Back home</Button></Link>}
       />
     </div>
   );

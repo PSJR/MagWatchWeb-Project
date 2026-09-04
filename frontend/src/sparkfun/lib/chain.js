@@ -75,18 +75,18 @@ export function humanizeChainError(err) {
   const raw = err?.shortMessage || err?.details || err?.message || '';
   const name = err?.cause?.data?.errorName || err?.data?.errorName || '';
 
-  if (/User rejected|denied transaction|4001/i.test(raw)) return 'Você cancelou na carteira.';
+  if (/User rejected|denied transaction|4001/i.test(raw)) return 'You cancelled in your wallet.';
   if (name === 'SlippageExceeded' || /SlippageExceeded/.test(raw)) {
-    return 'O preço mexeu mais que o combinado. Tentar com margem maior?';
+    return 'The price moved more than agreed. Try a wider slippage?';
   }
   if (name === 'WalletCapExceeded' || /WalletCapExceeded/.test(raw)) {
-    return 'Isso passa do limite por carteira deste token. Tokens em Fogo Selvagem não têm limite.';
+    return 'That is over this token\'s per-wallet cap. Mayhem tokens have no cap.';
   }
   if (name === 'AlreadyGraduated' || /AlreadyGraduated/.test(raw)) {
-    return 'Este token já graduou — negocie na pool do Uniswap V3.';
+    return 'This token already graduated — trade it in the Uniswap V3 pool.';
   }
-  if (name === 'ZeroAmount' || /ZeroAmount/.test(raw)) return 'Esse valor é pequeno demais.';
-  if (/insufficient funds/i.test(raw)) return 'Faltou um tiquinho de ETH pro gas. Quer adicionar?';
-  if (/nonce|replacement/i.test(raw)) return 'Tem outra transação sua na fila. Espere ela confirmar.';
-  return raw || 'Não deu certo dessa vez. Tente de novo.';
+  if (name === 'ZeroAmount' || /ZeroAmount/.test(raw)) return 'That amount is too small.';
+  if (/insufficient funds/i.test(raw)) return 'A little short on ETH for gas. Want to top up?';
+  if (/nonce|replacement/i.test(raw)) return 'You have another transaction queued. Wait for it to confirm.';
+  return raw || 'That did not work this time. Try again.';
 }

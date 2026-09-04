@@ -28,7 +28,7 @@ let wcProviderPromise = null;
 async function getWalletConnectProvider() {
   if (!PROJECT_ID) {
     throw new Error(
-      'WalletConnect não está configurado. Defina REACT_APP_WALLETCONNECT_PROJECT_ID.',
+      'WalletConnect is not configured. Set REACT_APP_WALLETCONNECT_PROJECT_ID.',
     );
   }
   if (!wcProviderPromise) {
@@ -41,7 +41,7 @@ async function getWalletConnectProvider() {
         showQrModal: true,
         metadata: {
           name: 'spark.fun',
-          description: 'Token launchpad da Robinhood Chain',
+          description: 'Token launchpad on Robinhood Chain',
           url: typeof window !== 'undefined' ? window.location.origin : 'https://spark.fun',
           icons: [`${typeof window !== 'undefined' ? window.location.origin : ''}/logo192.png`],
         },
@@ -181,7 +181,7 @@ export function WalletProvider({ children }) {
 
       if (kind === 'injected') {
         prov = injectedProvider();
-        if (!prov) throw new Error('Nenhuma carteira encontrada neste navegador.');
+        if (!prov) throw new Error('No wallet found in this browser.');
         const accounts = await prov.request({ method: 'eth_requestAccounts' });
         account = accounts?.[0];
       } else {
@@ -189,7 +189,7 @@ export function WalletProvider({ children }) {
         if (!prov.accounts?.length) await prov.connect();
         account = prov.accounts?.[0];
       }
-      if (!account) throw new Error('Nenhuma conta liberada.');
+      if (!account) throw new Error('No account was authorised.');
 
       await adopt(prov, kind, account);
       localStorage.setItem(LAST_CONNECTOR, kind);

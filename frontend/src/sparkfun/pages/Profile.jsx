@@ -19,15 +19,15 @@ import { joinedOn, money, pct, relTime, tokenAmount, truncAddress } from '../lib
 
 
 const BADGES = {
-  early_adopter:  { label: 'Early Adopter', icon: '🌱', how: 'Entre os 10.000 primeiros da casa' },
-  top_trader_day: { label: 'Top Trader do Dia', icon: '🏆', how: '#1 em PnL nas últimas 24h' },
-  top_trader_week:{ label: 'Top Trader da Semana', icon: '👑', how: '#1 em PnL nos últimos 7 dias' },
-  mayhem_survivor:{ label: 'Mayhem Survivor', icon: '🔥', how: 'Lucro em 3 tokens em Fogo Selvagem' },
-  sniper:         { label: 'Sniper', icon: '🎯', how: 'Comprou 5 graduados no primeiro minuto' },
-  diamond_hands:  { label: 'Diamond Hands', icon: '💎', how: 'Segurou um token por 30 dias' },
-  full_hearth:    { label: 'Fogueira Cheia', icon: '🪵', how: 'Comprou 10 tokens que graduaram' },
-  host:           { label: 'Anfitrião', icon: '🏠', how: '100 dias seguidos por aqui' },
-  patient:        { label: 'Paciente', icon: '☕', how: '7 dias sem vender numa queda forte' },
+  early_adopter:  { label: 'Early Adopter', icon: '🌱', how: 'Among the first 10,000 in the house' },
+  top_trader_day: { label: 'Top Trader Today', icon: '🏆', how: '#1 in PnL over the last 24h' },
+  top_trader_week:{ label: 'Top Trader This Week', icon: '👑', how: '#1 in PnL over the last 7 days' },
+  mayhem_survivor:{ label: 'Mayhem Survivor', icon: '🔥', how: 'Profit on 3 Mayhem tokens' },
+  sniper:         { label: 'Sniper', icon: '🎯', how: 'Bought 5 graduates in their first minute' },
+  diamond_hands:  { label: 'Diamond Hands', icon: '💎', how: 'Held a token for 30 days' },
+  full_hearth:    { label: 'Full Hearth', icon: '🪵', how: 'Bought 10 tokens that graduated' },
+  host:           { label: 'Host', icon: '🏠', how: '100 days in a row here' },
+  patient:        { label: 'Patient', icon: '☕', how: '7 days without selling through a hard drop' },
 };
 
 const MOODS = ['😌', '🔥', '🤔', '😤', '🥳', '😴'];
@@ -42,9 +42,9 @@ const THEMES = {
 
 const TABS = [
   { key: 'portfolio', label: 'Portfolio' },
-  { key: 'history', label: 'Histórico' },
-  { key: 'favorites', label: 'Favoritos' },
-  { key: 'activity', label: 'Atividade' },
+  { key: 'history', label: 'History' },
+  { key: 'favorites', label: 'Favourites' },
+  { key: 'activity', label: 'Activity' },
 ];
 
 /** Renders both /me (private) and /u/:handle (public) — one component, two lenses. */
@@ -83,9 +83,9 @@ export default function Profile({ own = false }) {
     return (
       <div className="pt-16">
         <EmptyState
-          title="Entre para ver seu perfil"
-          body="Sua carteira, seu portfolio e sua fogueira ficam aqui."
-          action={<Button onClick={() => connect().catch(() => {})}>Entrar na casa</Button>}
+          title="Sign in to see your profile"
+          body="Your wallet, your portfolio and your campfire live here."
+          action={<Button onClick={() => connect().catch(() => {})}>Connect wallet</Button>}
         />
       </div>
     );
@@ -116,13 +116,13 @@ export default function Profile({ own = false }) {
             <button
               onClick={() => navigator.clipboard?.writeText(p.address)}
               className="num text-caption text-cocoa-800/70 hover:text-cocoa-900 mt-1"
-              title="Copiar endereço"
+              title="Copy address"
             >
               {truncAddress(p.address)} ⧉
             </button>
           )}
           <p className="text-caption text-cocoa-800/70 mt-1">
-            na casa desde {joinedOn(p.created_at)}
+            here since {joinedOn(p.created_at)}
           </p>
 
           {p.badges?.length > 0 && (
@@ -148,12 +148,12 @@ export default function Profile({ own = false }) {
 
           {own && (
             <div className="flex items-center gap-1.5 mt-4">
-              <span className="text-caption text-cocoa-800/70 mr-1">humor de hoje:</span>
+              <span className="text-caption text-cocoa-800/70 mr-1">today's mood:</span>
               {MOODS.map((m) => (
                 <button
                   key={m}
                   onClick={() => { setMood(m); api.updateMe({ mood: m }).catch(() => {}); }}
-                  aria-label={`Definir humor ${m}`}
+                  aria-label={`Set mood ${m}`}
                   className={cx('w-9 h-9 rounded-pill text-[17px] transition-transform duration-base ease-pop',
                     currentMood === m ? 'scale-125 bg-cream-50/70' : 'opacity-60 hover:opacity-100')}
                 >
@@ -167,22 +167,22 @@ export default function Profile({ own = false }) {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
         <StatCard
-          label="Total investido"
+          label="Total invested"
           value={p.total_invested}
           format={(v) => money(v, 'ETH')}
           hidden={p.total_invested === null}
-          sub={`em ${p.tokens_bought} tokens`}
+          sub={`across ${p.tokens_bought} tokens`}
         />
         <StatCard
-          label="PnL total"
+          label="Total PnL"
           value={p.pnl_abs}
           format={(v) => money(v, 'ETH')}
           hidden={p.pnl_abs === null}
           tone={pnl >= 0 ? 'up' : 'down'}
           sub={`${pnl >= 0 ? '▲' : '▼'} ${pct(pnl, { sign: false })}`}
         />
-        <StatCard label="Graduados que peguei cedo" value={p.early_graduates} sub="no primeiro minuto" />
-        <StatCard label="Rank" value={p.rank} format={(v) => (v ? `#${Math.round(v)}` : '—')} sub="no leaderboard" />
+        <StatCard label="Graduates I caught early" value={p.early_graduates} sub="in the first minute" />
+        <StatCard label="Rank" value={p.rank} format={(v) => (v ? `#${Math.round(v)}` : '—')} sub="on the leaderboard" />
       </div>
 
       {own && (
@@ -212,7 +212,7 @@ export default function Profile({ own = false }) {
 
       {!own && (
         <div className="mt-8">
-          <h2 className="overline mb-3">Atividade</h2>
+          <h2 className="overline mb-3">Activity</h2>
           <Activity rows={activity.data} />
           {p.is_creator && (
             <Link
@@ -220,7 +220,7 @@ export default function Profile({ own = false }) {
               className="inline-flex items-center gap-2 mt-6 h-11 px-4 rounded-lg bg-surface
                          shadow-hairline font-semibold text-[14px] hover:shadow-sm"
             >
-              🪵 Ver perfil de criador
+              🪵 See creator profile
             </Link>
           )}
         </div>
@@ -235,7 +235,7 @@ function StatCard({ label, value, format, sub, tone, hidden }) {
       <p className="text-caption uppercase tracking-[.08em] text-ink3">{label}</p>
       <p className={cx('num text-[26px] font-medium mt-2 leading-none',
         tone === 'up' && 'text-mint-800', tone === 'down' && 'text-coral-800')}>
-        {hidden ? <span className="text-ink3">privado</span>
+        {hidden ? <span className="text-ink3">private</span>
           : <CountUp value={Number(value) || 0} format={format} />}
       </p>
       {sub && <p className="text-caption text-ink3 mt-1.5">{sub}</p>}
@@ -248,9 +248,9 @@ function Portfolio({ rows, loading }) {
   if (!rows?.length) {
     return (
       <EmptyState
-        title="Sua carteira está fresquinha"
-        body="Nada aceso ainda. A fogueira está logo ali."
-        action={<Link to="/explore"><Button variant="secondary">Explorar tokens</Button></Link>}
+        title="Your wallet is brand new"
+        body="Nothing lit yet. The campfire is right there."
+        action={<Link to="/explore"><Button variant="secondary">Explore tokens</Button></Link>}
       />
     );
   }
@@ -267,7 +267,7 @@ function Portfolio({ rows, loading }) {
             </p>
           </div>
           <Link to={`/t/${p.token.address}`} className="shrink-0">
-            <Button size="sm" variant="secondary">Vender</Button>
+            <Button size="sm" variant="secondary">Sell</Button>
           </Link>
         </li>
       ))}
@@ -277,14 +277,14 @@ function Portfolio({ rows, loading }) {
 
 function History({ rows }) {
   if (!rows) return <Skeleton className="h-40 w-full" rounded="rounded-xl" />;
-  if (!rows.length) return <EmptyState mood="sleepy" title="Nenhum trade ainda" body="Quando você comprar algo, aparece aqui." />;
+  if (!rows.length) return <EmptyState mood="sleepy" title="No trades yet" body="When you buy something, it shows up here." />;
   return <LiveFeed trades={rows} />;
 }
 
 function Favorites({ rows }) {
   if (!rows) return <Skeleton className="h-40 w-full" rounded="rounded-xl" />;
   if (!rows.length) {
-    return <EmptyState title="Nenhum favorito ainda" body="Toque no ♡ de qualquer token para guardar aqui." />;
+    return <EmptyState title="No favourites yet" body="Tap the ♡ on any token to keep it here." />;
   }
   return (
     <div className="grid [grid-template-columns:repeat(auto-fill,minmax(268px,1fr))] gap-4">
@@ -295,7 +295,7 @@ function Favorites({ rows }) {
 
 function Activity({ rows }) {
   if (!rows) return <Skeleton className="h-32 w-full" rounded="rounded-xl" />;
-  if (!rows.length) return <EmptyState mood="sleepy" title="Nada por aqui ainda" body="As ações recentes aparecem nesta linha." />;
+  if (!rows.length) return <EmptyState mood="sleepy" title="Nothing here yet" body="Recent actions show up along this line." />;
 
   return (
     <ol className="relative pl-6 space-y-3 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-subtle">
@@ -308,10 +308,10 @@ function Activity({ rows }) {
           />
           <p className="text-[14px] text-ink2">
             {e.kind === 'created' ? (
-              <>acendeu <Link to={`/t/${e.data.address}`} className="disp text-ink hover:underline">${e.data.ticker}</Link></>
+              <>lit <Link to={`/t/${e.data.address}`} className="disp text-ink hover:underline">${e.data.ticker}</Link></>
             ) : (
               <>
-                {e.data.side === 'buy' ? 'comprou' : 'vendeu'}{' '}
+                {e.data.side === 'buy' ? 'bought' : 'sold'}{' '}
                 <Link to={`/t/${e.data.token_address}`} className="disp text-ink hover:underline">${e.data.ticker}</Link>
                 {' · '}<span className="num text-caption text-ink3">{tokenAmount(e.data.base)}</span>
               </>

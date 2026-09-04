@@ -7,13 +7,13 @@ import { api } from '../lib/api';
 import { useAsync } from '../hooks/useLive';
 
 const FILTERS = [
-  { key: 'movers', label: 'Bombando', params: { sort: 'movers' } },
-  { key: 'mayhem', label: 'Fogo Selvagem', params: { sort: 'movers', mayhem: true } },
-  { key: 'new', label: 'Novos', params: { sort: 'new' } },
+  { key: 'movers', label: 'Movers', params: { sort: 'movers' } },
+  { key: 'mayhem', label: 'Mayhem', params: { sort: 'movers', mayhem: true } },
+  { key: 'new', label: 'New', params: { sort: 'new' } },
   { key: 'mcap', label: 'Market Cap', params: { sort: 'mcap' } },
-  { key: 'last_trade', label: 'Último trade', params: { sort: 'last_trade' } },
-  { key: 'almost', label: 'Quase lá', params: { sort: 'almost' } },
-  { key: 'graduated', label: 'Graduados', params: { sort: 'mcap', status: 'graduated' } },
+  { key: 'last_trade', label: 'Last trade', params: { sort: 'last_trade' } },
+  { key: 'almost', label: 'Almost there', params: { sort: 'almost' } },
+  { key: 'graduated', label: 'Graduated', params: { sort: 'mcap', status: 'graduated' } },
 ];
 
 export default function Explore() {
@@ -30,11 +30,11 @@ export default function Explore() {
 
   return (
     <div className="pt-6 md:pt-10">
-      <h1 className="text-display-lg mb-5">Explorar</h1>
+      <h1 className="text-display-lg mb-5">Explore</h1>
 
       <Field
         type="search"
-        placeholder="buscar tokens, criadores…"
+        placeholder="search tokens, creators…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         prefix="🔍"
@@ -65,7 +65,7 @@ export default function Explore() {
             <button
               key={key}
               onClick={() => setLayout(key)}
-              aria-label={key === 'grid' ? 'Ver em grade' : 'Ver em lista'}
+              aria-label={key === 'grid' ? 'Grid view' : 'List view'}
               aria-pressed={layout === key}
               className={cx('w-9 h-9 rounded-md text-[15px] transition-colors',
                 layout === key ? 'bg-accent-soft text-ink' : 'text-ink3 hover:text-ink')}
@@ -78,7 +78,7 @@ export default function Explore() {
 
       {active === 'almost' && (
         <p className="text-caption text-ink3 mb-4 -mt-2">
-          Tokens acima de 85% da curva. É o filtro mais adrenalina da casa.
+          Tokens past 85% of the curve. The most adrenaline in the house.
         </p>
       )}
 
@@ -89,13 +89,13 @@ export default function Explore() {
       ) : !list.data?.length ? (
         <EmptyState
           mood="carry"
-          title={query ? 'Nada por aqui' : 'Filtro muito apertado'}
+          title={query ? 'Nothing here' : 'That filter is too tight'}
           body={query
-            ? `Ninguém acendeu "${query}" ainda. Quer ser o primeiro?`
-            : 'Nenhum token bate com isso agora.'}
+            ? `Nobody has lit "${query}" yet. Want to be first?`
+            : 'No token matches that right now.'}
           action={query
-            ? <Button onClick={() => navigate('/create')}>Acender ${query.toUpperCase()}</Button>
-            : <Button variant="secondary" onClick={() => { setActive('movers'); setQuery(''); }}>Limpar filtros</Button>}
+            ? <Button onClick={() => navigate('/create')}>Light ${query.toUpperCase()}</Button>
+            : <Button variant="secondary" onClick={() => { setActive('movers'); setQuery(''); }}>Clear filters</Button>}
         />
       ) : (
         <div className={layout === 'grid'

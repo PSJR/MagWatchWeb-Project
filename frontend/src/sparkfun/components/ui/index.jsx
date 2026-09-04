@@ -49,13 +49,13 @@ export const Button = forwardRef(function Button(
       )}
       {...rest}
     >
-      {loading ? <Fagulha /> : children}
+      {loading ? <Sparks /> : children}
     </button>
   );
 });
 
 /** Loading indicator: three sparks that resolve into a flame. Never a spinner. */
-function Fagulha() {
+function Sparks() {
   return (
     <span className="inline-flex items-center gap-1" aria-hidden="true">
       {[0, 1, 2].map((i) => (
@@ -222,7 +222,7 @@ export function ErrorNote({ children, onRetry }) {
     <div className="flex items-center gap-3 bg-ember-100 border border-ember-200 rounded-lg px-4 py-3">
       <Ember size={36} mood="worried" />
       <p className="flex-1 text-sm text-ink2">{children}</p>
-      {onRetry && <Button size="sm" variant="secondary" onClick={onRetry}>Tentar de novo</Button>}
+      {onRetry && <Button size="sm" variant="secondary" onClick={onRetry}>Try again</Button>}
     </div>
   );
 }

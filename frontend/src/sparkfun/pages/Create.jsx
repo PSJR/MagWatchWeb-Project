@@ -51,9 +51,9 @@ export default function Create() {
   const preview = useMemo(() => ({
     address: 'preview',
     ticker: form.ticker || 'TICKER',
-    name: form.name || 'Nome do seu token',
+    name: form.name || 'Your token name',
     image_url: form.image_url || null,
-    creator_handle: user?.handle || 'você',
+    creator_handle: user?.handle || 'you',
     created_at: new Date().toISOString(),
     status: 'live',
     pair: form.pair,
@@ -75,7 +75,7 @@ export default function Create() {
     if (wrongNetwork) { await switchToChain().catch((e) => setError(e.message)); return; }
 
     const walletClient = getWalletClient();
-    if (!walletClient) { setError('Reconecte a carteira.'); return; }
+    if (!walletClient) { setError('Reconnect your wallet.'); return; }
 
     setBusy(true);
     try {
@@ -116,55 +116,55 @@ export default function Create() {
   return (
     <div className="pt-6 md:pt-10">
       <header className="mb-7">
-        <h1 className="text-display-lg">Acender um token</h1>
+        <h1 className="text-display-lg">Light a token</h1>
         <p className="text-ink3 mt-2 max-w-prose2">
-          Leva uns 20 segundos e custa só o gas da Robinhood Chain.
+          Takes about 20 seconds and costs only Robinhood Chain gas.
         </p>
       </header>
 
       <div className="grid lg:grid-cols-[1fr_360px] gap-8 items-start">
       <div className="order-2 lg:order-1">
-        <Section title="O básico">
+        <Section title="The basics">
           <Field
-            label="Nome do token" placeholder="Pizza da Meia-Noite" maxLength={48}
+            label="Token name" placeholder="Midnight Pizza" maxLength={48}
             value={form.name} onChange={set('name')}
           />
           <Field
             label="Ticker" placeholder="PIZZA" prefix="$" maxLength={10}
             value={form.ticker} onChange={set('ticker')}
             error={tickerState && !tickerState.available
-              ? `$${tickerState.ticker} já está aceso.${tickerState.suggestions.length ? ` Que tal $${tickerState.suggestions.join(' ou $')}?` : ''}`
+              ? `$${tickerState.ticker} is already lit.${tickerState.suggestions.length ? ` How about $${tickerState.suggestions.join(' or $')}?` : ''}`
               : null}
-            hint={tickerState?.available ? '✓ livre' : 'De 2 a 10 letras ou números.'}
+            hint={tickerState?.available ? '✓ free' : '2 to 10 letters or numbers.'}
           />
           <Field
-            as="textarea" rows={3} label="Descrição" maxLength={500}
-            placeholder="Conte a história em duas linhas."
+            as="textarea" rows={3} label="Description" maxLength={500}
+            placeholder="Tell the story in two lines."
             value={form.description} onChange={set('description')}
           />
           <Field
-            label="Imagem (URL)" placeholder="https://…"
-            hint="Cole o link da imagem do token. Upload chega em breve."
+            label="Image (URL)" placeholder="https://…"
+            hint="Paste a link to the token image. Upload is coming."
             value={form.image_url} onChange={set('image_url')}
           />
         </Section>
 
-        <Section title="Links sociais">
+        <Section title="Social links">
           <div className="grid sm:grid-cols-3 gap-x-4">
-            <Field label="X" prefix="𝕏" placeholder="@perfil" value={form.x} onChange={set('x')} />
+            <Field label="X" prefix="𝕏" placeholder="@handle" value={form.x} onChange={set('x')} />
             <Field label="Telegram" prefix="✈" placeholder="t.me/…" value={form.telegram} onChange={set('telegram')} />
-            <Field label="Site" prefix="🔗" placeholder="https://…" value={form.website} onChange={set('website')} />
+            <Field label="Website" prefix="🔗" placeholder="https://…" value={form.website} onChange={set('website')} />
           </div>
         </Section>
 
         {!isDeployed() && (
           <p className="text-[13px] text-ember-800 bg-ember-100 rounded-lg px-4 py-3 mb-5">
-            A launchpad ainda não foi publicada nesta rede. Defina
-            <code className="num mx-1">REACT_APP_SPARK_FACTORY</code> com o endereço da SparkFactory.
+            The launchpad is not deployed on this network yet. Set
+            <code className="num mx-1">REACT_APP_SPARK_FACTORY</code> to the SparkFactory address.
           </p>
         )}
 
-        <Section title="Par de negociação">
+        <Section title="Trading pair">
           <div className="grid sm:grid-cols-2 gap-3">
             {Object.values(PAIRS).map((p) => (
               <button
@@ -183,10 +183,10 @@ export default function Create() {
                 <span className="disp text-heading-md block">{p.label}</span>
                 <span className="text-caption text-ink3 block mt-1">{p.blurb}</span>
                 <span className="num text-caption text-ink3 block mt-2">
-                  gradua em {money(p.graduationRaise, p.symbol)}
+                  graduates at {money(p.graduationRaise, p.symbol)}
                 </span>
                 {p.symbol === 'USDC' && !CONTRACTS.usdc && (
-                  <span className="text-caption text-ink3 block mt-1">indisponível nesta rede</span>
+                  <span className="text-caption text-ink3 block mt-1">unavailable on this network</span>
                 )}
               </button>
             ))}
@@ -200,11 +200,11 @@ export default function Create() {
           setHoldProgress={setHoldProgress}
         />
 
-        <Section title="Compra inicial (opcional)">
+        <Section title="Opening buy (optional)">
           <Field
-            type="number" min="0" step="any" label={`Comprar na largada (${form.pair})`}
+            type="number" min="0" step="any" label={`Buy at launch (${form.pair})`}
             placeholder="0.0" prefix="⚡"
-            hint="Compra sua própria bolsa no mesmo bloco em que o token nasce."
+            hint="Buys your own bag in the same block the token is born."
             value={form.dev_buy} onChange={set('dev_buy')}
             className="[&_input]:num max-w-[280px]"
           />
@@ -220,26 +220,26 @@ export default function Create() {
             disabled={!canSubmit || !isDeployed()}
             onClick={submit} className="min-w-[220px]"
           >
-            🔥 {!signedIn ? 'Entrar e acender' : wrongNetwork ? 'Trocar de rede' : 'Acender'}
+            🔥 {!signedIn ? 'Connect and light' : wrongNetwork ? 'Switch network' : 'Light it'}
           </Button>
           <span className="text-caption text-ink3">
-            Custo: só o gas ⛽ ~$0,001
+            Cost: just gas ⛽ ~$0.001
           </span>
         </div>
       </div>
 
       <aside className="order-1 lg:order-2 lg:sticky lg:top-24">
-        <p className="overline mb-3">Preview ao vivo</p>
+        <p className="overline mb-3">Live preview</p>
         <TokenCard token={preview} className="pointer-events-none" />
         <dl className="mt-4 bg-surface border border-subtle rounded-xl p-4 space-y-2 text-caption">
-          <Line label="Supply total" value="1.000.000.000" />
-          <Line label="Na curva" value="800.000.000" />
-          <Line label="Para a pool" value="200.000.000" />
-          <Line label="Market cap inicial" value={money(preview.market_cap, form.pair)} />
-          <Line label="Fee do criador" value={`${(Number(params.creatorFeeBps) / 100).toFixed(1)}%`} />
+          <Line label="Total supply" value="1,000,000,000" />
+          <Line label="On the curve" value="800,000,000" />
+          <Line label="To the pool" value="200,000,000" />
+          <Line label="Starting market cap" value={money(preview.market_cap, form.pair)} />
+          <Line label="Creator fee" value={`${(Number(params.creatorFeeBps) / 100).toFixed(1)}%`} />
           <Line
-            label="Limite por carteira"
-            value={params.walletQuoteCap > 0n ? money(params.walletQuoteCap, form.pair) : 'sem limite'}
+            label="Per-wallet cap"
+            value={params.walletQuoteCap > 0n ? money(params.walletQuoteCap, form.pair) : 'no cap'}
           />
         </dl>
       </aside>
@@ -312,12 +312,12 @@ function MayhemBlock({ value, onChange, holdProgress, setHoldProgress }) {
           <Wick size={56} awake={value} className={value ? 'animate-bob' : ''} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <Tag tone="mayhem">Fogo Selvagem</Tag>
-              {value && <span className="text-caption text-wild-800 font-semibold">aceso</span>}
+              <Tag tone="mayhem">Mayhem</Tag>
+              {value && <span className="text-caption text-wild-800 font-semibold">lit</span>}
             </div>
             <p className="text-[13px] text-ink2 mt-2 leading-relaxed max-w-[46ch]">
-              Sem limite de compra por carteira, fee de 2,5% para você e uma curva mais íngreme.
-              Sobe mais rápido. Cai mais rápido. <strong>Não dá para desligar depois de acender.</strong>
+              No per-wallet cap, a 2.5% fee for you, and a steeper curve.
+              Rises faster. Falls faster. <strong>Cannot be turned off once lit.</strong>
             </p>
           </div>
 
@@ -340,7 +340,7 @@ function MayhemBlock({ value, onChange, holdProgress, setHoldProgress }) {
                 style={{ transform: `scaleX(${holdProgress})`, transformOrigin: 'left' }}
               />
             )}
-            <span className="relative">{value ? 'Apagar' : 'Segure para acender'}</span>
+            <span className="relative">{value ? 'Put it out' : 'Hold to light'}</span>
           </button>
         </div>
       </div>

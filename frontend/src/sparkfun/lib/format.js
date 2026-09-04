@@ -107,7 +107,7 @@ export function tokenAmount(value) {
   const n = asNumber(value, 18);
   if (!(n > 0)) return '0';
   if (n >= 1e6) return compact(n);
-  return Math.round(n).toLocaleString('pt-BR');
+  return Math.round(n).toLocaleString('en-US');
 }
 
 export function quote(value, pair = 'ETH') {
@@ -142,7 +142,7 @@ export function relTime(iso, now = Date.now()) {
   const t = typeof iso === 'number' ? iso : Date.parse(iso);
   if (Number.isNaN(t)) return '';
   const s = Math.max(0, Math.round((now - t) / 1000));
-  if (s < 3) return 'agora';
+  if (s < 3) return 'now';
   if (s < 60) return `${s}s`;
   const m = Math.round(s / 60);
   if (m < 60) return `${m}min`;
@@ -150,13 +150,13 @@ export function relTime(iso, now = Date.now()) {
   if (h < 24) return `${h}h`;
   const d = Math.round(h / 24);
   if (d < 30) return `${d}d`;
-  return new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  return new Date(t).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
 }
 
 export function joinedOn(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function trimZeros(s) {

@@ -35,7 +35,7 @@ export const PAIRS = {
     decimals: 18,
     graduationRaise: 12n * E18,
     address: null, // native
-    blurb: 'o gas nativo da chain',
+    blurb: "the chain's native gas",
   },
   USDC: {
     symbol: 'USDC',
@@ -43,7 +43,7 @@ export const PAIRS = {
     decimals: 6,
     graduationRaise: 36_000n * 10n ** 6n,
     address: null, // set from REACT_APP_USDC_ADDRESS at runtime
-    blurb: 'preço estável, market cap fácil de ler',
+    blurb: 'stable price, market cap you can read',
   },
 };
 

@@ -12,7 +12,7 @@ import { CONTRACTS, humanizeChainError, publicClient } from './chain';
 
 const factoryContract = () => {
   if (!CONTRACTS.factory) {
-    throw new Error('A launchpad ainda não foi publicada nesta rede.');
+    throw new Error('The launchpad is not deployed on this network yet.');
   }
   return { address: CONTRACTS.factory, abi: SPARK_FACTORY_ABI };
 };
@@ -94,7 +94,7 @@ async function send(walletClient, request) {
   const hash = await walletClient.writeContract(request);
   // ~100ms blocks: this resolves faster than the success animation finishes.
   const receipt = await publicClient.waitForTransactionReceipt({ hash, confirmations: 1 });
-  if (receipt.status !== 'success') throw new Error('A transação foi revertida na chain.');
+  if (receipt.status !== 'success') throw new Error('The transaction reverted on chain.');
   return receipt;
 }
 
@@ -172,7 +172,7 @@ export async function launchToken({ walletClient, account, name, symbol, metadat
     });
     const receipt = await send(walletClient, request);
     const [event] = parseEventLogs({ abi: SPARK_FACTORY_ABI, eventName: 'TokenLaunched', logs: receipt.logs });
-    if (!event) throw new Error('O token foi criado mas não consegui ler o evento.');
+    if (!event) throw new Error('The token was created but I could not read the event.');
     return { hash: receipt.transactionHash, token: event.args.token, curve: event.args.curve };
   } catch (err) {
     throw wrap(err);

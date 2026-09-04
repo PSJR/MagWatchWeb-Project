@@ -18,9 +18,9 @@ import { money } from '../lib/format';
 
 
 const FILTERS = [
-  { key: 'movers', label: 'Bombando' },
-  { key: 'new', label: 'Novos' },
-  { key: 'almost', label: 'Quase lá' },
+  { key: 'movers', label: 'Movers' },
+  { key: 'new', label: 'New' },
+  { key: 'almost', label: 'Almost there' },
 ];
 
 export default function Home() {
@@ -53,14 +53,14 @@ export default function Home() {
     <div className="pt-6 md:pt-10">
       <section className="relative overflow-hidden rounded-3xl bg-grad-dusk px-6 py-10 md:px-12 md:py-16">
         <div className="relative z-10 max-w-[34ch]">
-          <h1 className="text-display-hero text-cocoa-900">Acenda a sua faísca.</h1>
+          <h1 className="text-display-hero text-cocoa-900">Light your spark.</h1>
           <p className="mt-4 text-[16px] md:text-[17px] text-cocoa-800/80 max-w-[42ch]">
-            Tokens que nascem em 100 milissegundos, numa casa quentinha.
-            Só o gas da Robinhood Chain — nada além disso.
+            Tokens born in 100 milliseconds, in a warm little house.
+            Just Robinhood Chain gas — nothing beyond that.
           </p>
           <div className="flex flex-wrap gap-3 mt-7">
             <Button size="xl" onClick={() => navigate('/create')}>
-              🔥 Acender um token
+              🔥 Light a token
             </Button>
             <Link
               to="/explore"
@@ -69,7 +69,7 @@ export default function Home() {
                          hover:-translate-y-px active:translate-y-[3px] active:shadow-none
                          transition-[transform,box-shadow] duration-fast ease-out-soft"
             >
-              Explorar a fogueira
+              Explore the campfire
             </Link>
           </div>
         </div>
@@ -82,10 +82,10 @@ export default function Home() {
 
         {stats.data && (
           <dl className="relative z-10 flex flex-wrap gap-x-8 gap-y-2 mt-9 text-cocoa-800/75">
-            <Stat label="tokens acesos" value={stats.data.tokens_live} />
-            <Stat label="graduados" value={stats.data.tokens_graduated} />
-            <Stat label="volume 24h" value={money(stats.data.volume_24h, 'ETH')} />
-            <Stat label="trades 24h" value={stats.data.trades_24h} />
+            <Stat label="tokens lit" value={stats.data.tokens_live} />
+            <Stat label="graduated" value={stats.data.tokens_graduated} />
+            <Stat label="24h volume" value={money(stats.data.volume_24h, 'ETH')} />
+            <Stat label="24h trades" value={stats.data.trades_24h} />
           </dl>
         )}
       </section>
@@ -109,7 +109,7 @@ export default function Home() {
               </button>
             ))}
             <Link to="/explore" className="ml-auto text-caption text-ink3 hover:text-ink shrink-0">
-              ver tudo →
+              see all →
             </Link>
           </div>
 
@@ -119,9 +119,9 @@ export default function Home() {
             <CardGridSkeleton />
           ) : !feed.data?.length ? (
             <EmptyState
-              title="A fogueira está fria"
-              body="Ninguém acendeu nada ainda. Que tal ser o primeiro?"
-              action={<Button onClick={() => navigate('/create')}>Acender um token</Button>}
+              title="The campfire is cold"
+              body="Nobody has lit anything yet. Care to be first?"
+              action={<Button onClick={() => navigate('/create')}>Light a token</Button>}
             />
           ) : (
             <div className="grid [grid-template-columns:repeat(auto-fill,minmax(268px,1fr))] gap-4">
@@ -136,9 +136,9 @@ export default function Home() {
           <div className="sticky top-24 bg-surface border border-subtle rounded-xl p-4">
             <h2 className="overline flex items-center gap-2 mb-3">
               <span className={cx('w-1.5 h-1.5 rounded-pill', connected ? 'bg-mint-500 animate-beat' : 'bg-ash-400')} />
-              acontecendo agora
+              happening now
             </h2>
-            <LiveFeed trades={recent.data || []} emptyLabel="Ninguém mexeu na fogueira ainda." />
+            <LiveFeed trades={recent.data || []} emptyLabel="Nobody has poked the fire yet." />
           </div>
         </aside>
       </div>

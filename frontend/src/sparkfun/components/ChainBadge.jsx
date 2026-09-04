@@ -21,7 +21,7 @@ export default function ChainBadge({ compact = false, className = '' }) {
   return (
     <span
       data-chain-badge
-      title={`${CHAIN.name} · ${CHAIN.stack} · bloco a cada ~${CHAIN.blockTimeMs}ms`}
+      title={`${CHAIN.name} · ${CHAIN.stack} · a block every ~${CHAIN.blockTimeMs}ms`}
       className={cx(
         'inline-flex items-center gap-2 rounded-pill px-3 py-1.5 shadow-hairline',
         'bg-orbit-100 text-orbit-700 text-[12px] font-semibold whitespace-nowrap',
@@ -31,7 +31,7 @@ export default function ChainBadge({ compact = false, className = '' }) {
       <span className="w-[7px] h-[7px] rounded-pill bg-orbit-500 animate-beat" aria-hidden="true" />
       {compact ? CHAIN.id : <>Robinhood Chain · {CHAIN.id}</>}
       <span className="sr-only">
-        Conectado à {CHAIN.name}, id {CHAIN.id}. {blocks} blocos nesta sessão.
+        Connected to {CHAIN.name}, id {CHAIN.id}. {blocks} blocks this session.
       </span>
     </span>
   );
@@ -43,7 +43,7 @@ export function GasPill({ gwei = 0.001, className = '' }) {
     <span
       className={cx('inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1.5',
         'bg-surface shadow-hairline text-caption text-ink3 whitespace-nowrap', className)}
-      title="Gas na Robinhood Chain — pago em ETH"
+      title="Gas on Robinhood Chain — paid in ETH"
     >
       <Ember size={16} mood="blow" aria-hidden="true" />
       <span className="num">~${gwei.toFixed(3)}</span>

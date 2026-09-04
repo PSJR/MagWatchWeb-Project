@@ -47,11 +47,11 @@ def handle_from(address: Optional[str], email: Optional[str], taken: set[str]) -
 def siwe_message(address: str, nonce: str) -> str:
     """The text the wallet signs. Binds address, chain and nonce."""
     return (
-        "spark.fun quer entrar na casa com a sua carteira.\n\n"
-        f"Endereço: {address}\n"
-        f"Rede: Robinhood Chain (4663)\n"
+        "spark.fun would like to sign you in with your wallet.\n\n"
+        f"Address: {address}\n"
+        f"Network: Robinhood Chain (4663)\n"
         f"Nonce: {nonce}\n\n"
-        "Assinar não custa gas e não autoriza nenhuma transação."
+        "Signing costs no gas and authorises no transaction."
     )
 
 
@@ -195,7 +195,7 @@ def next_level_for(score: float) -> tuple[Optional[str], Optional[float]]:
 
 
 def next_level_hint(score: float, volume_usd: float, tokens: int, graduated: int) -> Optional[str]:
-    """Concrete language, not a bare number: 'faltam $180K de volume ou 2 graduações'."""
+    """Concrete language, not a bare number: '$180K more volume or 2 graduations'."""
     nxt, floor = next_level_for(score)
     if nxt is None or floor is None:
         return None
@@ -210,10 +210,10 @@ def next_level_hint(score: float, volume_usd: float, tokens: int, graduated: int
         if 0.35 * (new_rate - rate) >= gap:
             grads_needed = extra
             break
-    parts = [f"${_compact(volume_needed)} de volume"]
+    parts = [f"${_compact(volume_needed)} more volume"]
     if grads_needed:
-        parts.append(f"{grads_needed} graduaç{'ão' if grads_needed == 1 else 'ões'}")
-    return f"Faltam {' ou '.join(parts)} para {LEVEL_LABEL[nxt]}"
+        parts.append(f"{grads_needed} graduation{'' if grads_needed == 1 else 's'}")
+    return f"{' or '.join(parts)} to reach {LEVEL_LABEL[nxt]}"
 
 
 def _compact(n: float) -> str:
@@ -229,14 +229,14 @@ def _compact(n: float) -> str:
 
 BADGES = {
     "early_adopter":  {"label": "Early Adopter",  "icon": "sprout"},
-    "top_trader_day": {"label": "Top Trader do Dia", "icon": "trophy"},
-    "top_trader_week":{"label": "Top Trader da Semana", "icon": "crown"},
+    "top_trader_day": {"label": "Top Trader Today", "icon": "trophy"},
+    "top_trader_week":{"label": "Top Trader This Week", "icon": "crown"},
     "mayhem_survivor":{"label": "Mayhem Survivor", "icon": "flame"},
     "sniper":         {"label": "Sniper", "icon": "target"},
     "diamond_hands":  {"label": "Diamond Hands", "icon": "gem"},
-    "full_hearth":    {"label": "Fogueira Cheia", "icon": "log"},
-    "host":           {"label": "Anfitrião", "icon": "home"},
-    "patient":        {"label": "Paciente", "icon": "cup"},
+    "full_hearth":    {"label": "Full Hearth", "icon": "log"},
+    "host":           {"label": "Host", "icon": "home"},
+    "patient":        {"label": "Patient", "icon": "cup"},
 }
 
 

@@ -14,7 +14,7 @@ import { api } from '../lib/api';
 import { money, price as fmtPrice, pct, relTime, tokenAmount, truncAddress } from '../lib/format';
 
 const TABS = [
-  { key: 'about', label: 'Sobre' },
+  { key: 'about', label: 'About' },
   { key: 'trades', label: 'Trades' },
   { key: 'holders', label: 'Holders' },
   { key: 'chat', label: 'Chat' },
@@ -72,7 +72,7 @@ export default function TokenPage() {
                 {graduated && <Tag tone="graduated">Graduado</Tag>}
               </div>
               <p className="text-ink3 text-sm mt-1">
-                {t.name} · por{' '}
+                {t.name} · by{' '}
                 <Link to={`/u/${t.creator_handle}`} className="text-ink hover:underline">
                   @{t.creator_handle}
                 </Link>{' '}
@@ -146,12 +146,12 @@ export default function TokenPage() {
           />
 
           <div className="bg-surface border border-subtle rounded-xl p-4">
-            <p className="overline mb-2">Criador</p>
+            <p className="overline mb-2">Creator</p>
             <Link to={`/u/${t.creator_handle}`} className="disp text-heading-md hover:underline">
               @{t.creator_handle}
             </Link>
             <p className="num text-caption text-ink3 mt-2">
-              🪵 gerou {money(t.creator_fees, t.pair)} em fees com este token
+              🪵 earned {money(t.creator_fees, t.pair)} in fees from this token
             </p>
           </div>
         </aside>
@@ -166,7 +166,7 @@ function About({ token }) {
     <div className="space-y-5">
       {token.description
         ? <p className="text-ink2 max-w-prose2 leading-relaxed">{token.description}</p>
-        : <p className="text-ink3 text-sm">Sem descrição — o criador deixou o mistério.</p>}
+        : <p className="text-ink3 text-sm">No description — the creator left it a mystery.</p>}
 
       {links.length > 0 && (
         <div className="flex gap-2 flex-wrap">
@@ -183,11 +183,11 @@ function About({ token }) {
       )}
 
       <dl className="grid sm:grid-cols-2 gap-x-8 gap-y-2 text-caption max-w-[560px]">
-        <Row label="Contrato" value={truncAddress(token.address, 10, 6)} mono />
-        <Row label="Par" value={token.pair} />
-        <Row label="Supply" value="1.000.000.000" mono />
-        <Row label="Nascido em" value={new Date(token.created_at).toLocaleString('pt-BR')} />
-        <Row label="Arrecadado" value={money(token.raised, token.pair)} mono />
+        <Row label="Contract" value={truncAddress(token.address, 10, 6)} mono />
+        <Row label="Pair" value={token.pair} />
+        <Row label="Supply" value="1,000,000,000" mono />
+        <Row label="Born" value={new Date(token.created_at).toLocaleString('en-US')} />
+        <Row label="Raised" value={money(token.raised, token.pair)} mono />
         <Row label="Trades" value={token.trades} mono />
       </dl>
     </div>
@@ -208,16 +208,16 @@ function EternalFlame({ token }) {
     <div className="bg-gold-100 border border-gold-600 rounded-xl p-5">
       <div className="flex items-center gap-2 mb-2">
         <span aria-hidden="true" className="text-xl">🔒</span>
-        <h2 className="disp text-heading-lg text-gold-800">Chama eterna</h2>
+        <h2 className="disp text-heading-lg text-gold-800">Eternal flame</h2>
       </div>
       <p className="text-[13px] text-ink2">
-        A curva fechou e a liquidez foi travada para sempre numa pool do Uniswap V3
-        na Robinhood Chain.
+        The curve closed and the liquidity was locked forever in a Uniswap V3 pool
+        on Robinhood Chain.
       </p>
       <dl className="num text-caption text-ink3 mt-3 space-y-1">
         <div className="flex justify-between gap-3"><dt>Pool</dt><dd className="truncate">{truncAddress(token.pool_address, 10, 6)}</dd></div>
-        <div className="flex justify-between gap-3"><dt>Liquidez</dt><dd>{money(token.raised, token.pair)} + 200M ${token.ticker}</dd></div>
-        <div className="flex justify-between gap-3"><dt>Faixa</dt><dd>full-range</dd></div>
+        <div className="flex justify-between gap-3"><dt>Liquidity</dt><dd>{money(token.raised, token.pair)} + 200M ${token.ticker}</dd></div>
+        <div className="flex justify-between gap-3"><dt>Range</dt><dd>full-range</dd></div>
       </dl>
     </div>
   );
@@ -225,7 +225,7 @@ function EternalFlame({ token }) {
 
 function Holders({ rows }) {
   if (!rows) return <Skeleton className="h-40 w-full" rounded="rounded-xl" />;
-  if (!rows.length) return <EmptyState mood="sleepy" title="Nenhum holder ainda" body="Seja o primeiro a pegar uma bolsa." />;
+  if (!rows.length) return <EmptyState mood="sleepy" title="No holders yet" body="Be the first to grab a bag." />;
 
   return (
     <ul className="divide-y divide-subtle">
@@ -236,9 +236,9 @@ function Holders({ rows }) {
             @{h.handle}
           </Link>
           <span className="flex gap-1 shrink-0">
-            {h.is_creator && <span title="Criador">👑</span>}
-            {h.early && <span title="Comprou no primeiro minuto">🌱</span>}
-            {h.whale && <span title="Mais de 3% do supply">🐋</span>}
+            {h.is_creator && <span title="Creator">👑</span>}
+            {h.early && <span title="Bought in the first minute">🌱</span>}
+            {h.whale && <span title="Over 3% of supply">🐋</span>}
           </span>
           <span className="ml-auto num text-caption text-ink3 shrink-0">
             {tokenAmount(h.balance)} · {pct(h.share, { sign: false })}
@@ -273,7 +273,7 @@ function Chat({ address, comments, canPost, onPosted, onCheer }) {
     <div>
       <div ref={listRef} className="max-h-[380px] overflow-y-auto space-y-2 mb-4">
         {!comments?.length ? (
-          <EmptyState mood="wave" title="Silêncio total" body="Diga oi para os outros holders." />
+          <EmptyState mood="wave" title="Total silence" body="Say hi to the other holders." />
         ) : comments.map((c) => (
           <div key={c.id} className="bg-surface border border-subtle rounded-xl px-4 py-2.5 animate-pop-in">
             <p className="text-caption text-ink3 mb-0.5">
@@ -290,17 +290,17 @@ function Chat({ address, comments, canPost, onPosted, onCheer }) {
       {canPost ? (
         <div className="flex gap-2 items-start">
           <Field
-            placeholder="escreva algo…" maxLength={400} value={body}
+            placeholder="write something…" maxLength={400} value={body}
             onChange={(e) => setBody(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
             className="flex-1"
           />
           <Button size="lg" loading={busy} disabled={!body.trim()} onClick={send} className="mt-6">
-            Enviar
+            Send
           </Button>
         </div>
       ) : (
-        <p className="text-caption text-ink3">Entre na casa para conversar.</p>
+        <p className="text-caption text-ink3">Connect your wallet to chat.</p>
       )}
     </div>
   );

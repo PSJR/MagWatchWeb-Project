@@ -165,7 +165,7 @@ async def current_user_optional(
 
 async def current_user(user: Optional[dict] = Depends(current_user_optional)) -> dict:
     if not user:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Entre na casa para fazer isso.")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sign in to do that.")
     return user
 
 
@@ -229,12 +229,12 @@ async def auth_verify(payload: VerifyIn) -> Any:
         {"address": payload.address.lower(), "nonce": payload.nonce}
     )
     if not record:
-        raise HTTPException(400, "Esse desafio expirou. Tente conectar de novo.")
+        raise HTTPException(400, "That challenge expired. Try connecting again.")
 
     message = S.siwe_message(payload.address, payload.nonce)
     verified = S.verify_signature(payload.address, message, payload.signature)
     if not verified and os.environ.get("SPARKFUN_REQUIRE_SIGNATURE", "true").lower() == "true":
-        raise HTTPException(401, "Não consegui conferir a assinatura dessa carteira.")
+        raise HTTPException(401, "I could not verify that wallet's signature.")
 
     user = await db()[USERS].find_one({"address": payload.address.lower()}, {"_id": 0})
     if not user:
@@ -246,7 +246,7 @@ async def auth_verify(payload: VerifyIn) -> Any:
 async def auth_guest(payload: GuestIn) -> Any:
     email = payload.email.strip().lower()
     if "@" not in email or len(email) < 5:
-        raise HTTPException(400, "Esse e-mail não parece certo.")
+        raise HTTPException(400, "That email does not look right.")
     user = await db()[USERS].find_one({"email": email}, {"_id": 0})
     if not user:
         user = await _create_user(email=email, nickname=payload.nickname)
@@ -333,7 +333,7 @@ async def list_tokens(
             {"ticker": {"$regex": q.upper().lstrip("$"), "$options": "i"}},
             {"name": {"$regex": q, "$options": "i"}},
         ]
-    # "Quase lá" is the signature filter: tokens on the edge of graduating.
+    # "Almost there" is the signature filter: tokens on the edge of graduating.
     if sort == "almost":
         query["status"] = "live"
         # 85% of the ETH graduation target; the USDC target differs, so this
@@ -369,7 +369,7 @@ async def ticker_available(ticker: str) -> Any:
 async def get_token(address: str) -> Any:
     doc = await db()[TOKENS].find_one({"address": address}, {"_id": 0})
     if not doc:
-        raise HTTPException(404, "Não achei esse token por aqui.")
+        raise HTTPException(404, "I could not find that token.")
     creator = await db()[USERS].find_one({"id": doc["creator_id"]}, {"_id": 0})
     stats = await _token_stats([address])
     return S.project_token(doc, creator=creator, stats=stats.get(address, {}))
@@ -405,7 +405,7 @@ async def index_token(payload: dict, user: dict = Depends(current_user)) -> Any:
     """
     token_address = (payload.get("token") or "").strip()
     if not token_address.startswith("0x") or len(token_address) != 42:
-        raise HTTPException(400, "Endereço de token inválido.")
+        raise HTTPException(400, "That token address is not valid.")
 
     fields = {
         "description": str(payload.get("description") or "")[:500],
@@ -424,7 +424,7 @@ async def index_token(payload: dict, user: dict = Depends(current_user)) -> Any:
     existing = await db()[TOKENS].find_one({"address": token_address}, {"_id": 0, "creator_id": 1})
     if existing:
         if existing.get("creator_id") != user["id"]:
-            raise HTTPException(403, "Esse token não é seu.")
+            raise HTTPException(403, "That token is not yours.")
         await db()[TOKENS].update_one({"address": token_address}, {"$set": fields})
         return {"indexed": True, **fields}
 
@@ -472,7 +472,7 @@ async def list_comments(address: str, limit: int = Query(50, ge=1, le=200)) -> A
 async def post_comment(address: str, payload: CommentIn, user: dict = Depends(current_user)) -> Any:
     doc = await db()[TOKENS].find_one({"address": address}, {"_id": 0, "creator_id": 1, "base_sold": 1})
     if not doc:
-        raise HTTPException(404, "Não achei esse token por aqui.")
+        raise HTTPException(404, "I could not find that token.")
     position = await db()[POSITIONS].find_one(
         {"user_id": user["id"], "token_address": address}, {"_id": 0, "balance": 1}
     ) or {"balance": 0.0}
@@ -507,9 +507,9 @@ async def toggle_favorite(address: str, user: dict = Depends(current_user)) -> A
 async def toggle_follow(handle: str, user: dict = Depends(current_user)) -> Any:
     target = await db()[USERS].find_one({"handle": handle}, {"_id": 0})
     if not target:
-        raise HTTPException(404, "Não achei essa pessoa.")
+        raise HTTPException(404, "I could not find that person.")
     if target["id"] == user["id"]:
-        raise HTTPException(400, "Você já anda consigo mesmo.")
+        raise HTTPException(400, "You already follow yourself.")
 
     existing = await db()[FOLLOWS].find_one_and_delete(
         {"follower_id": user["id"], "target_id": target["id"]}
@@ -635,7 +635,7 @@ async def _rank_of(user_id: str) -> Optional[int]:
 async def user_profile(handle: str, viewer: Optional[dict] = Depends(current_user_optional)) -> Any:
     user = await db()[USERS].find_one({"handle": handle}, {"_id": 0})
     if not user:
-        raise HTTPException(404, "Não achei essa pessoa.")
+        raise HTTPException(404, "I could not find that person.")
     agg = await _user_aggregates(user)
     is_self = bool(viewer and viewer["id"] == user["id"])
     reveal = is_self or bool(user.get("show_absolute_pnl"))
@@ -687,7 +687,7 @@ async def my_favorites(user: dict = Depends(current_user)) -> Any:
 async def user_activity(handle: str, limit: int = Query(40, ge=1, le=100)) -> Any:
     user = await db()[USERS].find_one({"handle": handle}, {"_id": 0, "id": 1})
     if not user:
-        raise HTTPException(404, "Não achei essa pessoa.")
+        raise HTTPException(404, "I could not find that person.")
     trades = await db()[TRADES].find({"user_id": user["id"]}, {"_id": 0}) \
         .sort("ts", -1).limit(limit).to_list(limit)
     created = await db()[TOKENS].find({"creator_id": user["id"]}, {"_id": 0}) \
@@ -783,7 +783,7 @@ async def _creator_stats(user: dict, *, include_claimable: bool = False) -> dict
 async def creator_profile(handle: str) -> Any:
     user = await db()[USERS].find_one({"handle": handle}, {"_id": 0})
     if not user:
-        raise HTTPException(404, "Não achei esse criador.")
+        raise HTTPException(404, "I could not find that creator.")
     return await _creator_stats(user)
 
 

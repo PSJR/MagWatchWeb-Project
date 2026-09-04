@@ -67,8 +67,8 @@ export default function CurveChart({ token, height = 240, className = '' }) {
               fontSize: 12,
               color: 'var(--text-primary)',
             }}
-            labelFormatter={(v) => `${v}% da fogueira`}
-            formatter={(v, name) => [name === 'cap' ? money(v, token.pair) : fmtPrice(v, { prefix: '' }), name === 'cap' ? 'market cap' : 'preço']}
+            labelFormatter={(v) => `${v}% of the campfire`}
+            formatter={(v, name) => [name === 'cap' ? money(v, token.pair) : fmtPrice(v, { prefix: '' }), name === 'cap' ? 'market cap' : 'price']}
           />
 
           <Area
@@ -88,8 +88,8 @@ export default function CurveChart({ token, height = 240, className = '' }) {
         </AreaChart>
       </ResponsiveContainer>
       <p className="sr-only">
-        Curva de bonding do token {token.ticker}: começa em {money(data[0]?.cap || 0, token.pair)} de market cap
-        e chega a {money(data[data.length - 1]?.cap || 0, token.pair)} na graduação. Posição atual: {livePct}%.
+        Bonding curve for {token.ticker}: starts at {money(data[0]?.cap || 0, token.pair)} market cap
+        and reaches {money(data[data.length - 1]?.cap || 0, token.pair)} at graduation. Currently at {livePct}%.
       </p>
     </div>
   );

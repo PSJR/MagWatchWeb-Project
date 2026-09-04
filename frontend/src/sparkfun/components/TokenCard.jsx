@@ -72,7 +72,7 @@ export default function TokenCard({
         <div className="min-w-0 flex-1">
           <div className="disp text-heading-md leading-tight truncate">${token.ticker}</div>
           <div className="text-caption text-ink3 truncate mt-0.5">
-            {token.name} · por @{token.creator_handle} · {relTime(token.created_at)}
+            {token.name} · by @{token.creator_handle} · {relTime(token.created_at)}
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export default function TokenCard({
           type="button"
           onClick={handleFav}
           aria-pressed={fav}
-          aria-label={fav ? `Desfavoritar ${token.ticker}` : `Favoritar ${token.ticker}`}
+          aria-label={fav ? `Unfavourite ${token.ticker}` : `Favourite ${token.ticker}`}
           className={cx('shrink-0 -mt-1 -mr-1 p-1.5 rounded-md text-lg leading-none',
             'transition-transform duration-base ease-pop hover:scale-110',
             fav ? 'text-coral-600 scale-110' : 'text-ink3')}
@@ -98,10 +98,10 @@ export default function TokenCard({
           </span>
         )}
         <span className="ml-auto flex items-center gap-1.5">
-          {fresh && !dead && !graduated && <Tag tone="new">Novo</Tag>}
+          {fresh && !dead && !graduated && <Tag tone="new">New</Tag>}
           {token.mayhem && <Tag tone="mayhem">Mayhem</Tag>}
-          {graduated && <Tag tone="graduated">Graduado</Tag>}
-          {dead && <Tag tone="dead">Brasa</Tag>}
+          {graduated && <Tag tone="graduated">Graduated</Tag>}
+          {dead && <Tag tone="dead">Embers</Tag>}
         </span>
       </div>
 
@@ -115,9 +115,9 @@ export default function TokenCard({
 
       <div className="flex items-center justify-between gap-2 mt-2 text-caption text-ink3">
         <span className="min-w-0 truncate">
-          {graduated ? '🔒 liquidez travada · Uniswap V3'
-            : dead ? 'a fogueira apagou'
-            : `${Math.round(token.progress * 100)}% da fogueira 🔥`}
+          {graduated ? '🔒 liquidity locked · Uniswap V3'
+            : dead ? 'the fire went out'
+            : `${Math.round(token.progress * 100)}% of the campfire 🔥`}
         </span>
         <span className="num shrink-0 whitespace-nowrap">
           vol {money(token.volume_24h, token.pair)}

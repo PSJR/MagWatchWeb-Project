@@ -29,9 +29,9 @@ const LEVELS = {
 };
 
 const FILTERS = [
-  { key: 'all', label: 'Todos' },
-  { key: 'live', label: 'Ativos' },
-  { key: 'graduated', label: 'Graduados' },
+  { key: 'all', label: 'All' },
+  { key: 'live', label: 'Active' },
+  { key: 'graduated', label: 'Graduated' },
 ];
 
 /** Renders /creator (own dashboard) and /c/:handle (public creator profile). */
@@ -58,9 +58,9 @@ export default function Creator({ own = false }) {
     return (
       <div className="pt-16">
         <EmptyState
-          title="Entre para ver sua lenha"
-          body="Seus tokens, seus fees e seu nível ficam aqui."
-          action={<Button onClick={() => connect().catch(() => {})}>Entrar na casa</Button>}
+          title="Sign in to see your firewood"
+          body="Your tokens, your fees and your level live here."
+          action={<Button onClick={() => connect().catch(() => {})}>Connect wallet</Button>}
         />
       </div>
     );
@@ -76,9 +76,9 @@ export default function Creator({ own = false }) {
       <div className="pt-16">
         <EmptyState
           mood="sleepy"
-          title="Sua primeira faísca espera"
-          body="Leva uns 20 segundos e custa só o gas."
-          action={<Link to="/create"><Button>Acender um token</Button></Link>}
+          title="Your first spark is waiting"
+          body="Takes about 20 seconds and costs only gas."
+          action={<Link to="/create"><Button>Light a token</Button></Link>}
         />
       </div>
     );
@@ -94,7 +94,7 @@ export default function Creator({ own = false }) {
    */
   const claim = async () => {
     const walletClient = getWalletClient();
-    if (!walletClient) { setClaimError('Reconecte a carteira.'); return; }
+    if (!walletClient) { setClaimError('Reconnect your wallet.'); return; }
     setClaiming(true);
     setClaimError(null);
     try {
@@ -106,7 +106,7 @@ export default function Creator({ own = false }) {
         await claimCreatorFees({ walletClient, account: address, curveAddress: t.curve });
         claimed += 1;
       }
-      if (!claimed) { setClaimError('Nada de lenha para pegar ainda.'); return; }
+      if (!claimed) { setClaimError('No firewood to collect yet.'); return; }
       burst(claimRef.current, { tone: 'gold', count: 20 });
       data.reload();
     } catch (err) {
@@ -127,10 +127,10 @@ export default function Creator({ own = false }) {
         <div className="relative">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-display-md text-cocoa-900">{c.nickname}</h1>
-            {c.verified_creator && <span title="Criador verificado">✅</span>}
+            {c.verified_creator && <span title="Verified creator">✅</span>}
           </div>
           <p className="text-caption text-cocoa-800/70 mt-1">
-            @{c.handle} · {c.follower_count} seguidores
+            @{c.handle} · {c.follower_count} followers
           </p>
           {c.bio && <p className="text-[14px] text-cocoa-800/85 mt-2 max-w-prose2">{c.bio}</p>}
           <span
@@ -146,23 +146,23 @@ export default function Creator({ own = false }) {
       {/* The number the creator comes to see. */}
       <section className="mt-4 rounded-2xl border border-gold-600 bg-gold-100 p-6">
         <p className="overline text-gold-800 flex items-center gap-2">
-          🪵 Lenha acumulada
+          🪵 Firewood earned
           <span className="w-1.5 h-1.5 rounded-pill bg-mint-500 animate-beat" aria-hidden="true" />
-          <span className="font-normal normal-case tracking-normal">ao vivo</span>
+          <span className="font-normal normal-case tracking-normal">live</span>
         </p>
         <p className="num text-num-hero font-medium text-cocoa-900 mt-2 leading-none">
           <CountUp value={c.fees_lifetime} format={(v) => money(v, 'ETH')} />
         </p>
         <div className="flex items-center gap-4 flex-wrap mt-3">
           <p className="num text-caption text-gold-800">
-            +{money(c.fees_today, 'ETH')} hoje · {money(c.fees_30d, 'ETH')} em 30 dias
+            +{money(c.fees_today, 'ETH')} today · {money(c.fees_30d, 'ETH')} over 30 days
           </p>
           {own && (
             <Button
               ref={claimRef} size="sm" variant="gold" loading={claiming}
               onClick={claim} className="ml-auto"
             >
-              Sacar lenha 🪵
+              Collect firewood 🪵
             </Button>
           )}
         </div>
@@ -171,31 +171,31 @@ export default function Creator({ own = false }) {
         )}
         {own && (
           <p className="text-caption text-gold-800 mt-2">
-            O saque chama o contrato direto da sua carteira. A plataforma não guarda chave e não move sua lenha.
+            Collecting calls the contract straight from your wallet. The platform holds no key and cannot move your firewood.
           </p>
         )}
       </section>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-        <Metric label="Tokens criados" value={c.tokens_created} />
-        <Metric label="Volume gerado" value={money(c.total_volume, 'ETH')} />
+        <Metric label="Tokens created" value={c.tokens_created} />
+        <Metric label="Volume generated" value={money(c.total_volume, 'ETH')} />
         <Metric
-          label="Taxa de graduação"
+          label="Graduation rate"
           value={pct(c.graduation_rate, { sign: false, digits: 0 })}
-          sub="média da casa: 12%"
+          sub="house average: 12%"
         />
-        <Metric label="Holders únicos" value={c.unique_holders} />
+        <Metric label="Unique holders" value={c.unique_holders} />
       </div>
 
       {c.next_level_need && (
         <p className="text-caption text-ink3 mt-3">
-          {c.next_level_need} — a fórmula é pública: 45% volume, 35% graduação, 20% seguidores.
+          {c.next_level_need} — the formula is public: 45% volume, 35% graduation rate, 20% followers.
         </p>
       )}
 
       {c.fees_series?.length > 1 && (
         <section className="mt-8">
-          <h2 className="overline mb-3">Fees nos últimos 30 dias</h2>
+          <h2 className="overline mb-3">Fees over the last 30 days</h2>
           <div className="bg-surface border border-subtle rounded-xl p-3" style={{ height: 160 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={c.fees_series} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
@@ -210,7 +210,7 @@ export default function Creator({ own = false }) {
                     color: 'var(--text-primary)',
                   }}
                   formatter={(v) => [money(v, 'ETH'), 'fees']}
-                  labelFormatter={(v) => new Date(v).toLocaleDateString('pt-BR')}
+                  labelFormatter={(v) => new Date(v).toLocaleDateString('en-US')}
                 />
                 <Bar dataKey="fees" fill="var(--accent)" radius={[6, 6, 0, 0]} isAnimationActive={false} />
               </BarChart>
@@ -237,14 +237,14 @@ export default function Creator({ own = false }) {
         </div>
 
         {!tokens.length ? (
-          <p className="text-caption text-ink3 py-8 text-center">Nenhum token nesse filtro.</p>
+          <p className="text-caption text-ink3 py-8 text-center">No token matches that filter.</p>
         ) : (
           <div className="grid [grid-template-columns:repeat(auto-fill,minmax(268px,1fr))] gap-4">
             {tokens.map((t) => (
               <div key={t.address}>
                 <TokenCard token={t} />
                 <p className="num text-caption text-ink3 mt-1.5 px-1">
-                  🪵 gerou {money(t.creator_fees, t.pair)} em fees
+                  🪵 earned {money(t.creator_fees, t.pair)} in fees
                 </p>
               </div>
             ))}
@@ -254,7 +254,7 @@ export default function Creator({ own = false }) {
 
       {c.best_token && (
         <section className="mt-8">
-          <h2 className="overline mb-3">Melhor token</h2>
+          <h2 className="overline mb-3">Best token</h2>
           <div className="max-w-[380px]">
             <TokenCard token={c.best_token} />
           </div>

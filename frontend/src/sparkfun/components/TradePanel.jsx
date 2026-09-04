@@ -73,7 +73,7 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
     if (!preview || amountUnits <= 0n) return;
 
     const walletClient = getWalletClient();
-    if (!walletClient) { setError('Reconecte a carteira.'); return; }
+    if (!walletClient) { setError('Reconnect your wallet.'); return; }
 
     setBusy(true);
     try {
@@ -111,22 +111,22 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
   if (graduated) {
     return (
       <div className={cx('bg-gold-100 border border-gold-600 rounded-xl p-5', className)}>
-        <Tag tone="graduated">Chama eterna</Tag>
-        <h3 className="disp text-heading-lg mt-3">Este token graduou.</h3>
+        <Tag tone="graduated">Eternal flame</Tag>
+        <h3 className="disp text-heading-lg mt-3">This token graduated.</h3>
         <p className="text-sm text-ink3 mt-1.5">
-          A liquidez está travada para sempre numa pool do Uniswap V3 na Robinhood Chain.
-          Não existe função no contrato capaz de retirá-la.
+          Its liquidity is locked forever in a Uniswap V3 pool on Robinhood Chain.
+          No function in the contract can withdraw it.
         </p>
         <dl className="num text-caption text-ink3 mt-3 space-y-1">
           <div className="flex justify-between gap-3">
             <dt>Pool</dt><dd>{truncAddress(state?.pool || token.pool_address, 8, 6)}</dd>
           </div>
-          <div className="flex justify-between gap-3"><dt>Faixa</dt><dd>full-range</dd></div>
-          <div className="flex justify-between gap-3"><dt>Fee da pool</dt><dd>1%</dd></div>
+          <div className="flex justify-between gap-3"><dt>Range</dt><dd>full-range</dd></div>
+          <div className="flex justify-between gap-3"><dt>Pool fee</dt><dd>1%</dd></div>
         </dl>
         <Button variant="gold" full className="mt-4"
                 onClick={() => window.open(uniswapTradeUrl(token.address), '_blank', 'noopener')}>
-          Negociar no Uniswap V3
+          Trade on Uniswap V3
         </Button>
       </div>
     );
@@ -155,7 +155,7 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
                 : 'text-ink3 hover:text-ink',
             )}
           >
-            {s === 'buy' ? 'Comprar' : 'Vender'}
+            {s === 'buy' ? 'Buy' : 'Sell'}
           </button>
         ))}
       </div>
@@ -163,8 +163,8 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
       <Field
         as="input" type="number" inputMode="decimal" min="0" step="any" placeholder="0.00"
         value={amount} onChange={(e) => setAmount(e.target.value)}
-        label={isBuy ? `Quanto de ${pair}` : `Quantos $${token.ticker}`}
-        hint={`Você tem ${maxLabel}`}
+        label={isBuy ? `How much ${pair}` : `How many $${token.ticker}`}
+        hint={`You have ${maxLabel}`}
         suffix={<span className="text-ink3 text-caption font-semibold">{isBuy ? pair : token.ticker}</span>}
         className="[&_input]:num [&_input]:text-num-lg"
       />
@@ -180,40 +180,40 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
       </div>
 
       <div className="rounded-lg bg-sunken p-3 space-y-1.5">
-        <Row label="Você recebe" strong>
+        <Row label="You get" strong>
           <span className="num">
             {isBuy ? `${tokenAmount(out)} $${token.ticker}` : money(out, pair)}
           </span>
         </Row>
         <div className="h-px bg-subtle my-2" />
-        <Row label={`Fee do criador ${(Number(params.creatorFeeBps) / 100).toFixed(1)}% 🪵`}>
+        <Row label={`Creator fee ${(Number(params.creatorFeeBps) / 100).toFixed(1)}% 🪵`}>
           <span className="num">{money(preview?.creatorFee || 0n, pair)}</span>
         </Row>
-        <Row label={`Fee do protocolo ${(Number(params.protocolFeeBps) / 100).toFixed(1)}% ✨`}>
+        <Row label={`Protocol fee ${(Number(params.protocolFeeBps) / 100).toFixed(1)}% ✨`}>
           <span className="num">{money(preview?.protocolFee || 0n, pair)}</span>
         </Row>
         <Row label="Gas (Robinhood Chain) ⛽"><span className="num">~$0.001</span></Row>
         {preview && Math.abs(impact) > 0.01 && (
-          <Row label="Impacto no preço">
+          <Row label="Price impact">
             <span className={cx('num', Math.abs(impact) > 0.1 ? 'text-ember-700' : 'text-ink3')}>
               {pct(impact)}
             </span>
           </Row>
         )}
         {preview?.refund > 0n && (
-          <Row label="Devolvido (curva fechou)">
+          <Row label="Refunded (curve closed)">
             <span className="num text-mint-800">{money(preview.refund, pair)}</span>
           </Row>
         )}
         {preview?.graduates && (
           <p className="text-caption text-gold-800 bg-gold-100 rounded-md px-2 py-1.5 mt-2">
-            🔥 Esta compra gradua o token e cria a pool no Uniswap V3.
+            🔥 This buy graduates the token and creates its Uniswap V3 pool.
           </p>
         )}
       </div>
 
       <div className="flex items-center justify-between mt-3 mb-3">
-        <span className="text-caption text-ink3">Margem de preço</span>
+        <span className="text-caption text-ink3">Slippage</span>
         <div className="flex gap-1">
           {SLIPPAGES.map((s) => (
             <button key={s} onClick={() => setSlippage(s)}
@@ -227,7 +227,7 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
 
       {overCap && (
         <p className="text-caption text-ember-800 bg-ember-100 rounded-md px-3 py-2 mb-3">
-          Isso passa do limite de {money(state.walletQuoteCap, pair)} por carteira neste token.
+          That is over the {money(state.walletQuoteCap, pair)} per-wallet cap on this token.
         </p>
       )}
       {error && (
@@ -240,16 +240,16 @@ export default function TradePanel({ token, curve, onTraded, className = '' }) {
         disabled={signedIn && !wrongNetwork && (!preview || amountUnits <= 0n)}
         onClick={submit}
       >
-        {done ? '✓ Feito'
-          : !signedIn ? 'Entrar na casa'
-          : wrongNetwork ? 'Trocar para a Robinhood Chain'
-          : isBuy ? `Comprar por ${money(amountUnits, pair)}`
-          : `Vender ${tokenAmount(amountUnits)} $${token.ticker}`}
+        {done ? '✓ Done'
+          : !signedIn ? 'Connect wallet'
+          : wrongNetwork ? 'Switch to Robinhood Chain'
+          : isBuy ? `Buy for ${money(amountUnits, pair)}`
+          : `Sell ${tokenAmount(amountUnits)} $${token.ticker}`}
       </Button>
 
       {tokenBalance > 0n && (
         <p className="text-caption text-ink3 mt-3 flex justify-between">
-          <span>Sua posição</span>
+          <span>Your position</span>
           <span className="num">{tokenAmount(tokenBalance)} ${token.ticker}</span>
         </p>
       )}

@@ -78,14 +78,14 @@ class UserPatch(Base):
             return v
         v = v.strip()
         if not 1 <= len(v) <= 32:
-            raise ValueError("O apelido precisa ter entre 1 e 32 caracteres.")
+            raise ValueError("A nickname needs 1 to 32 characters.")
         return v
 
     @field_validator("bio")
     @classmethod
     def _bio(cls, v: Optional[str]) -> Optional[str]:
         if v is not None and len(v) > 600:
-            raise ValueError("A bio passa de 600 caracteres.")
+            raise ValueError("That bio is over 600 characters.")
         return v
 
 
@@ -133,7 +133,7 @@ class TokenCreate(Base):
     def _name(cls, v: str) -> str:
         v = v.strip()
         if not 1 <= len(v) <= 48:
-            raise ValueError("O nome precisa ter entre 1 e 48 caracteres.")
+            raise ValueError("A name needs 1 to 48 characters.")
         return v
 
     @field_validator("ticker")
@@ -141,7 +141,7 @@ class TokenCreate(Base):
     def _ticker(cls, v: str) -> str:
         v = v.strip().upper().lstrip("$")
         if not TICKER_RE.match(v):
-            raise ValueError("O ticker usa de 2 a 10 letras ou números, sem espaços.")
+            raise ValueError("A ticker is 2 to 10 letters or numbers, no spaces.")
         return v
 
     @field_validator("description")
@@ -149,14 +149,14 @@ class TokenCreate(Base):
     def _desc(cls, v: Optional[str]) -> str:
         v = (v or "").strip()
         if len(v) > 500:
-            raise ValueError("A descrição passa de 500 caracteres.")
+            raise ValueError("That description is over 500 characters.")
         return v
 
     @field_validator("dev_buy")
     @classmethod
     def _dev_buy(cls, v: float) -> float:
         if v < 0:
-            raise ValueError("A compra inicial não pode ser negativa.")
+            raise ValueError("The opening buy cannot be negative.")
         return v
 
 
@@ -208,7 +208,7 @@ class QuoteIn(Base):
     @classmethod
     def _amount(cls, v: float) -> float:
         if v <= 0:
-            raise ValueError("Informe um valor maior que zero.")
+            raise ValueError("Enter an amount above zero.")
         return v
 
 
@@ -221,7 +221,7 @@ class TradeIn(QuoteIn):
     @classmethod
     def _slip(cls, v: float) -> float:
         if not 0 < v <= 0.5:
-            raise ValueError("A margem precisa ficar entre 0 e 50%.")
+            raise ValueError("Slippage has to sit between 0 and 50%.")
         return v
 
 
@@ -271,7 +271,7 @@ class CommentIn(Base):
     def _body(cls, v: str) -> str:
         v = v.strip()
         if not 1 <= len(v) <= 400:
-            raise ValueError("A mensagem precisa ter entre 1 e 400 caracteres.")
+            raise ValueError("A message needs 1 to 400 characters.")
         return v
 
 

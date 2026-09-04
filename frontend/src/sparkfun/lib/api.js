@@ -52,7 +52,7 @@ async function request(path, { method = 'GET', body, auth = true, signal } = {})
     });
   } catch (err) {
     if (err.name === 'AbortError') throw err;
-    throw new ApiError('Perdemos a conexão com a casa.', 0);
+    throw new ApiError('We lost the connection.', 0);
   }
 
   if (res.status === 204) return null;
@@ -71,11 +71,11 @@ async function request(path, { method = 'GET', body, auth = true, signal } = {})
 /** Error copy rules from /design/10-content-and-microcopy.md § 5. */
 function humanError(status, detail) {
   if (typeof detail === 'string' && detail.length && status !== 500) return detail;
-  if (status === 401) return 'Sua sessão expirou. Entre de novo.';
-  if (status === 403) return 'Isso aí não é seu para mexer.';
-  if (status === 404) return 'Não achei isso por aqui.';
-  if (status === 429) return 'Calma com a fogueira — muitas ações seguidas.';
-  return 'A gente derrubou alguma coisa. Já estamos consertando.';
+  if (status === 401) return 'Your session expired. Sign in again.';
+  if (status === 403) return 'That is not yours to touch.';
+  if (status === 404) return 'I could not find that.';
+  if (status === 429) return 'Easy on the fire — too many actions at once.';
+  return 'We knocked something over. Already fixing it.';
 }
 
 const qs = (params) => {

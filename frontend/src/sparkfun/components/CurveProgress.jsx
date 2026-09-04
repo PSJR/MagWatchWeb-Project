@@ -20,11 +20,11 @@ export default function CurveProgress({
       {showLabels && (
         <div className="flex items-baseline justify-between mb-2 gap-3">
           <span className={cx('disp text-[15px]', done ? 'text-gold-800' : 'text-ink')}>
-            {done ? 'Graduou 🔥' : almost ? 'Quase lá… 🔥' : `${Math.round(pct * 100)}% da fogueira`}
+            {done ? 'Graduated 🔥' : almost ? 'Almost there… 🔥' : `${Math.round(pct * 100)}% of the campfire`}
           </span>
           {!done && (
             <span className="num text-caption text-ink3 whitespace-nowrap">
-              faltam {money(toGraduate, pair)} para graduar
+              {money(toGraduate, pair)} to graduate
             </span>
           )}
         </div>
@@ -37,7 +37,7 @@ export default function CurveProgress({
         aria-valuenow={Math.round(pct * 100)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuetext={`${Math.round(pct * 100)} por cento até a graduação`}
+        aria-valuetext={`${Math.round(pct * 100)} percent to graduation`}
       >
         <div
           className={cx('h-full rounded-pill relative transition-[width] duration-slower ease-out-soft',

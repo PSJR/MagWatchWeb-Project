@@ -8,11 +8,11 @@ import { truncAddress } from '../lib/format';
 import { CHAIN, CHAIN_ID } from '../lib/chain';
 
 const NAV = [
-  { to: '/', label: 'Início', icon: '⌂', end: true },
-  { to: '/explore', label: 'Explorar', icon: '🔍' },
-  { to: '/create', label: 'Acender', icon: '🔥', primary: true },
-  { to: '/me', label: 'Perfil', icon: '👤' },
-  { to: '/creator', label: 'Criador', icon: '🪵' },
+  { to: '/', label: 'Home', icon: '⌂', end: true },
+  { to: '/explore', label: 'Explore', icon: '🔍' },
+  { to: '/create', label: 'Light it', icon: '🔥', primary: true },
+  { to: '/me', label: 'Profile', icon: '👤' },
+  { to: '/creator', label: 'Creator', icon: '🪵' },
 ];
 
 export default function AppShell({ children }) {
@@ -66,7 +66,7 @@ function Header({ onConnect }) {
           {user ? (
             <button
               onClick={disconnect}
-              title={`Sair · conectado via ${connector === 'injected' ? 'carteira do navegador' : 'WalletConnect'}`}
+              title={`Sign out · connected via ${connector === 'injected' ? 'browser wallet' : 'WalletConnect'}`}
               className="flex items-center gap-2 rounded-pill bg-surface shadow-hairline pl-1 pr-3 py-1
                          hover:shadow-sm transition-shadow duration-fast"
             >
@@ -76,7 +76,7 @@ function Header({ onConnect }) {
               </span>
             </button>
           ) : (
-            <Button size="md" onClick={onConnect}>Entrar na casa</Button>
+            <Button size="md" onClick={onConnect}>Connect wallet</Button>
           )}
         </div>
       </div>
@@ -95,14 +95,14 @@ function NetworkBanner() {
       <div className="max-w-app mx-auto px-4 md:px-8 py-2.5 flex items-center gap-3">
         <Ember size={28} mood="worried" />
         <p className="flex-1 text-[13px] text-ink2">
-          Você está em outra casa. Trocar para a {CHAIN.name}?
+          You are on a different network. Switch to {CHAIN.name}?
         </p>
         <Button
           size="sm"
           loading={busy}
           onClick={async () => { setBusy(true); try { await switchToChain(); } finally { setBusy(false); } }}
         >
-          Trocar de rede
+          Switch network
         </Button>
       </div>
     </div>
@@ -111,7 +111,7 @@ function NetworkBanner() {
 
 function SideRail() {
   return (
-    <nav className="hidden lg:block w-[212px] shrink-0 pt-8" aria-label="Navegação principal">
+    <nav className="hidden lg:block w-[212px] shrink-0 pt-8" aria-label="Main navigation">
       <ul className="sticky top-24 space-y-1">
         {NAV.map((item) => (
           <li key={item.to}>
@@ -138,7 +138,7 @@ function BottomNav() {
   return (
     <nav
       className="lg:hidden fixed bottom-0 inset-x-0 z-[200] glass border-t border-subtle safe-b"
-      aria-label="Navegação principal"
+      aria-label="Main navigation"
     >
       <ul className="flex items-stretch justify-around h-[62px]">
         {NAV.map((item) => (
@@ -208,7 +208,7 @@ function WalletModal({ onClose }) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Entrar na casa"
+      aria-label="Connect wallet"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -217,7 +217,7 @@ function WalletModal({ onClose }) {
         <div className="flex items-center gap-3 mb-1">
           <Ember size={44} mood="happy" className="animate-bob" />
           <div>
-            <h2 className="disp text-heading-lg">Entrar na casa</h2>
+            <h2 className="disp text-heading-lg">Connect wallet</h2>
             <p className="text-caption text-ink3">{CHAIN.name} · {CHAIN_ID}</p>
           </div>
         </div>
@@ -229,17 +229,17 @@ function WalletModal({ onClose }) {
             disabled={!walletConnectConfigured || connecting}
             onClick={run('walletconnect')}
           >
-            Conectar com WalletConnect
+            Connect with WalletConnect
           </Button>
           <p className="text-caption text-ink3 text-center">
-            Funciona com qualquer carteira: QR no desktop, link direto no celular.
+            Works with any wallet: QR on desktop, deep link on mobile.
           </p>
 
           {!walletConnectConfigured && (
             <p className="text-caption text-ember-800 bg-ember-100 rounded-md px-3 py-2">
-              WalletConnect não está configurado nesta build. Defina
+              WalletConnect is not configured in this build. Set
               <code className="num mx-1">REACT_APP_WALLETCONNECT_PROJECT_ID</code>
-              (grátis em dashboard.reown.com).
+              (free at dashboard.reown.com).
             </p>
           )}
 
@@ -250,22 +250,22 @@ function WalletModal({ onClose }) {
               disabled={connecting}
               onClick={run('injected')}
             >
-              Usar a carteira do navegador
+              Use the browser wallet
             </Button>
           )}
         </div>
 
         <div className="flex items-center gap-3 my-5">
           <span className="flex-1 h-px bg-subtle" />
-          <span className="text-caption text-ink3">ou</span>
+          <span className="text-caption text-ink3">or</span>
           <span className="flex-1 h-px bg-subtle" />
         </div>
 
         <Field
           type="email"
           placeholder="voce@email.com"
-          label="Entrar com e-mail"
-          hint="A gente cria a carteira para você."
+          label="Sign in with email"
+          hint="We make a wallet for you."
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -273,16 +273,15 @@ function WalletModal({ onClose }) {
           full variant="secondary" size="lg" disabled={!email.includes('@')} loading={connecting}
           onClick={() => connectEmail(email).then(onClose).catch(() => {})}
         >
-          Enviar
+          Send
         </Button>
 
         {error && <p className="text-caption text-coral-800 mt-3 text-center">{error}</p>}
 
         <p className="text-caption text-ink3 mt-5 leading-relaxed">
-          Você mantém a custódia: a assinatura serve só para provar quem você é e
-          não autoriza nenhuma transação. Tokens criados aqui não têm garantia nem
-          promessa de valor. A maioria vai a zero. A gente deixa isso divertido —
-          mas o risco é de verdade.
+          You keep custody: the signature only proves who you are and authorises
+          no transaction. Tokens created here carry no guarantee and no promise of
+          value. Most go to zero. We keep it fun — but the risk is real.
         </p>
       </div>
     </div>

@@ -55,7 +55,7 @@ async function deployFactory() {
 async function launch(factory, creator, { mayhem = false, devBuy = 0n } = {}) {
   const tx = await factory.connect(creator).launch(
     {
-      name: "Pizza da Meia-Noite",
+      name: "Midnight Pizza",
       symbol: "PIZZA",
       metadataURI: "ipfs://meta",
       quoteToken: ethers.ZeroAddress,
