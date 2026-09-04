@@ -79,14 +79,38 @@ else
   fail "No supported package manager found (looked for dnf, yum, apt-get)."
 fi
 
+# get.docker.com refuses AlmaLinux ("Unsupported distribution"), which is
+# exactly what Hostinger's CyberPanel image runs. Docker CE does support it —
+# through the CentOS repository, since AlmaLinux is RHEL-compatible.
 if ! command -v docker >/dev/null 2>&1; then
   log "Installing Docker"
-  curl -fsSL https://get.docker.com | sh
+  if command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
+    PKG=$(command -v dnf || command -v yum)
+    "$PKG" install -y -q dnf-plugins-core yum-utils >/dev/null 2>&1 || true
+    if command -v dnf >/dev/null 2>&1; then
+      dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo >/dev/null 2>&1 \
+        || dnf config-manager addrepo --from-repofile=https://download.docker.com/linux/centos/docker-ce.repo >/dev/null 2>&1
+    else
+      yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo >/dev/null
+    fi
+    "$PKG" install -y -q docker-ce docker-ce-cli containerd.io \
+      docker-buildx-plugin docker-compose-plugin >/dev/null
+  else
+    curl -fsSL https://get.docker.com | sh
+  fi
 else
   log "Docker already present: $(docker --version)"
 fi
 
-docker compose version >/dev/null 2>&1 || fail "docker compose v2 is required."
+# The convenience script starts the daemon on Debian; the RPM packages do not.
+if ! docker info >/dev/null 2>&1; then
+  log "Starting the Docker daemon"
+  systemctl enable --now docker >/dev/null 2>&1 || service docker start >/dev/null 2>&1 || true
+  for i in $(seq 1 20); do docker info >/dev/null 2>&1 && break; sleep 1; done
+fi
+docker info >/dev/null 2>&1 || fail "Docker is installed but the daemon will not start. Check: systemctl status docker"
+
+docker compose version >/dev/null 2>&1 || fail "docker compose v2 is required (install the docker-compose-plugin package)."
 
 # ---------------------------------------------------------------------------
 # The code. The repository is private, so an anonymous clone gets a 404 — the
@@ -107,9 +131,12 @@ elif [ -n "${GH_TOKEN:-}" ]; then
   git clone --depth 1 --branch "$BRANCH" \
     "https://${GH_TOKEN}@github.com/PSJR/MagWatchWeb-Project.git" "$APP_DIR"
 else
-  fail "No checkout found and no GH_TOKEN set. The repository is private, so:
-    GH_TOKEN=<token> sudo -E bash deploy/install.sh
-  or clone it yourself first and run this script from inside the clone."
+  log "Cloning into $APP_DIR"
+  # Works while the repository is public; if it goes private again, GitHub
+  # answers 404 rather than 403 and the hint below is the fix.
+  git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$APP_DIR" || fail \
+    "Clone failed. If the repository is private, pass a token:
+    GH_TOKEN=<token> sudo -E bash deploy/install.sh"
 fi
 cd "$APP_DIR"
 
@@ -151,4 +178,4 @@ echo "   logs:         docker compose -f deploy/docker-compose.yml logs -f"
 echo "   redeploy:     sudo bash deploy/install.sh"
 echo
 echo "To serve it on the domain over HTTPS, add a reverse proxy in CyberPanel"
-echo "for srv1505182.hstgr.cloud pointing at 127.0.0.1:${WEB_PORT} — see deploy/README.md."
+echo "for your domain, pointing at 127.0.0.1:${WEB_PORT} — see deploy/README.md."

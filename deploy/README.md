@@ -1,8 +1,8 @@
 # Deploying spark.fun to a test server
 
-Verified against `srv1505182.hstgr.cloud` (Hostinger VPS, CyberPanel +
-OpenLiteSpeed on 80/443). The stack runs in Docker on its own port and does
-not touch the existing CyberPanel setup.
+Verified on a Hostinger VPS running AlmaLinux with CyberPanel and
+OpenLiteSpeed on 80/443. The stack runs in Docker on its own port and does not
+touch the existing CyberPanel setup.
 
 ## Getting the code onto the server
 
@@ -53,12 +53,12 @@ and starts three containers:
 | `api` | FastAPI + the chain indexer | internal only |
 | `mongo` | MongoDB, on a named volume | internal only |
 
-Then open `http://187.77.243.186:8080`.
+Then open `http://<your-server-ip>:8080`.
 
 ## Putting the domain in front of it
 
-The app is on 8080 so it can coexist with CyberPanel. To serve it at
-`https://srv1505182.hstgr.cloud`, add a reverse proxy for that domain in
+The app is on 8080 so it can coexist with CyberPanel. To serve it on
+your domain over HTTPS, add a reverse proxy for it in
 **CyberPanel → Websites → Manage → Rewrite Rules**:
 
 ```
@@ -92,7 +92,7 @@ still works without it, it just stops updating on its own.
 Once the domain is fixed, tighten CORS in `deploy/.env`:
 
 ```
-CORS_ORIGINS=https://srv1505182.hstgr.cloud
+CORS_ORIGINS=https://your-domain.example
 ```
 
 and re-run `sudo bash deploy/install.sh`.
