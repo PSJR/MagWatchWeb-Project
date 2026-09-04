@@ -1,0 +1,24 @@
+# Never let local state into an image. Without this, `COPY backend/ ./` bakes
+# backend/.env — SECRET_KEY, dev RPC and a stale factory address — into the
+# published artifact, and python-dotenv then fills any variable compose did
+# not set, so a development contract address silently wins in production.
+**/.env
+**/.env.*
+!**/.env.example
+
+.git
+.gitignore
+**/node_modules
+**/build
+**/dist
+**/__pycache__
+**/*.pyc
+contracts/artifacts
+contracts/cache
+contracts/deployments
+frontend/.env.local
+deploy/.env
+tests/fixtures
+test_reports
+Dockerfile.verify-*
+.ccr-ca.crt

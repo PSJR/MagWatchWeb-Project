@@ -26,9 +26,31 @@ FIXTURE = Path(
                   "5f2e6c79-3386-5075-a51a-7f1ac1340fdd/scratchpad/local.json")
 )
 
+def _chain_reachable() -> bool:
+    """The fixture file outliving the node it describes is the normal case —
+    a laptop reboot is enough. Skipping on an unreachable RPC keeps `make test`
+    honest instead of reporting six connection errors as failures."""
+    if not FIXTURE.exists():
+        return False
+    import json as _json
+    import urllib.error
+    import urllib.request
+    try:
+        url = _json.loads(FIXTURE.read_text())["rpc"]
+        req = urllib.request.Request(
+            url,
+            data=b'{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}',
+            headers={"content-type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=3) as res:
+            return b"result" in res.read()
+    except (urllib.error.URLError, OSError, KeyError, ValueError, TimeoutError):
+        return False
+
+
 pytestmark = pytest.mark.skipif(
-    not FIXTURE.exists(),
-    reason="run contracts/scripts/seed-local.js against a local node first",
+    not _chain_reachable(),
+    reason="needs a local node seeded by contracts/scripts/seed-local.js",
 )
 
 

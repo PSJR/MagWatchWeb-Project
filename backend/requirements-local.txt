@@ -2,14 +2,17 @@
 #
 # backend/requirements.txt is the hosting image's kitchen-sink manifest (124
 # lines: boto3, google-genai, torch tooling and so on) and installs slowly.
-# These ten packages are what the code actually imports — verified by grepping
-# every import in backend/. Use requirements.txt for the deployed image and
-# this file on your machine.
+# This is what the app actually needs to boot. Use requirements.txt for the
+# managed image and this file on your machine.
 
 fastapi==0.110.1
 uvicorn[standard]==0.25.0
 starlette==0.37.2
 pydantic==2.11.9
+# Not an import: pydantic's EmailStr resolves this lazily at model-build time,
+# so grepping imports misses it and the app dies on startup instead of at
+# install. Caught by actually booting the container.
+email-validator==2.3.0
 motor==3.3.1
 pymongo==4.5.0
 python-dotenv==1.1.1

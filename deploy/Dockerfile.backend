@@ -1,0 +1,16 @@
+# spark.fun API + chain indexer
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Only the twelve packages the code imports; the image's kitchen-sink
+# requirements.txt is for the managed host, not for this.
+COPY backend/requirements-local.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY backend/ ./
+
+# Uvicorn binds all interfaces inside the container; the compose file decides
+# what is actually published to the host.
+EXPOSE 8001
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1"]

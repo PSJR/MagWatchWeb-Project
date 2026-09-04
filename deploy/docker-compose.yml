@@ -1,0 +1,70 @@
+# spark.fun — test deployment.
+#
+# Deliberately self-contained and published on one port, so it sits alongside
+# whatever already runs on 80/443 (this server runs CyberPanel/OpenLiteSpeed)
+# without touching that config. Put the domain in front of it afterwards —
+# see deploy/README.md.
+#
+#   cd /opt/sparkfun && docker compose -f deploy/docker-compose.yml up -d --build
+
+name: sparkfun
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    # Not published to the host: only the API needs to reach it.
+    expose:
+      - "27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URL: mongodb://mongo:27017
+      DB_NAME: ${DB_NAME:-sparkfun}
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in deploy/.env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      SPARK_CHAIN_ID: ${SPARK_CHAIN_ID:-4663}
+      SPARK_RPC_URL: ${SPARK_RPC_URL:-https://rpc.mainnet.chain.robinhood.com}
+      SPARK_FACTORY_ADDRESS: ${SPARK_FACTORY_ADDRESS:-}
+      SPARK_DEPLOY_BLOCK: ${SPARK_DEPLOY_BLOCK:-0}
+      SPARK_LOG_SPAN: ${SPARK_LOG_SPAN:-9000}
+      SPARKFUN_REQUIRE_SIGNATURE: ${SPARKFUN_REQUIRE_SIGNATURE:-true}
+    expose:
+      - "8001"
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+      args:
+        # Same origin: nginx proxies /api to the api service, so the browser
+        # never makes a cross-origin request and CORS is a non-issue.
+        REACT_APP_BACKEND_URL: ""
+        REACT_APP_CHAIN_ID: ${SPARK_CHAIN_ID:-4663}
+        REACT_APP_RPC_URL: ${SPARK_RPC_URL:-https://rpc.mainnet.chain.robinhood.com}
+        REACT_APP_EXPLORER_URL: ${SPARK_EXPLORER_URL:-https://robinhoodchain.blockscout.com}
+        REACT_APP_SPARK_FACTORY: ${SPARK_FACTORY_ADDRESS:-}
+        REACT_APP_WALLETCONNECT_PROJECT_ID: ${WALLETCONNECT_PROJECT_ID:-}
+        REACT_APP_USDC_ADDRESS: ${USDC_ADDRESS:-}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8080}:80"
+
+volumes:
+  mongo-data:
