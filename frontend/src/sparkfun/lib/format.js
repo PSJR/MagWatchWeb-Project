@@ -14,11 +14,34 @@ const SUBSCRIPTS = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈
  */
 export function fromUnits(value, decimals = 18) {
   if (value === null || value === undefined) return 0;
-  if (typeof value !== 'bigint') return Number(value);
+  const big = typeof value === 'bigint' ? value : toBigIntOrNull(value);
+  if (big === null) return Number(value);
   const base = 10n ** BigInt(decimals);
-  const whole = value / base;
-  const frac = value % base;
-  return Number(whole) + Number(frac) / Number(base);
+  return Number(big / base) + Number(big % base) / Number(base);
+}
+
+/**
+ * Raw base units reach the client in two shapes and only two:
+ *   - BigInt, from curve.js and from contract reads
+ *   - a decimal integer *string*, from the API, because uint256 does not fit
+ *     any numeric BSON type (Decimal128 stops at 34 digits) so the indexer
+ *     stores it exactly as text
+ * Every already-scaled value is a JSON number. So "digits-only string" is an
+ * unambiguous marker for raw units, and treating it as scaled prints wei —
+ * which is exactly what the live feed used to do.
+ */
+const RAW_INTEGER = /^-?\d+$/;
+
+function toBigIntOrNull(value) {
+  if (typeof value === 'bigint') return value;
+  if (typeof value === 'string' && RAW_INTEGER.test(value.trim())) {
+    try {
+      return BigInt(value.trim());
+    } catch {
+      return null;
+    }
+  }
+  return null;
 }
 
 /** Number -> BigInt wei, rounding down. Used when the user types an amount. */
@@ -30,7 +53,7 @@ export function toUnits(value, decimals = 18) {
   return BigInt(whole || '0') * 10n ** BigInt(decimals) + BigInt(padded || '0');
 }
 
-const asNumber = (n, decimals) => (typeof n === 'bigint' ? fromUnits(n, decimals) : n);
+const asNumber = (n, decimals) => (toBigIntOrNull(n) !== null ? fromUnits(n, decimals) : n);
 
 /** U+2212 MINUS SIGN — never a hyphen in front of a number. */
 export const MINUS = '−';
